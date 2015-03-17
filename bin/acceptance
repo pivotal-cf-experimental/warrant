@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+DIR=`cd $(dirname $0)/.. && pwd`
+if [[ -z "$UAA_HOST" ]]; then
+  echo "UAA_HOST is a required env var"
+  exit 1
+fi
+
+if [[ -z "$UAA_ADMIN_CLIENT" ]]; then
+  echo "UAA_ADMIN_CLIENT is a required env var"
+  exit 1
+fi
+
+if [[ -z "$UAA_ADMIN_SECRET" ]]; then
+  echo "UAA_ADMIN_SECRET is a required env var"
+  exit 1
+fi
+
+uaac target $UAA_HOST
+uaac token client get $UAA_ADMIN_CLIENT -s $UAA_ADMIN_SECRET
+
+export UAA_TOKEN=`uaac context | grep access_token | awk '{ print $2 }'`
+
+ginkgo -r $DIR/acceptance
