@@ -40,7 +40,7 @@ func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword,
 		return true
 	}
 
-	token := s.tokenizer.Decrypt(tokenHeader)
+	token := s.Tokenizer.Decrypt(tokenHeader)
 	if token.UserID == userID && existingPassword == givenPassword {
 		return true
 	}

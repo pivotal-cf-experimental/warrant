@@ -2,4 +2,8 @@
 
 DIR=`cd $(dirname $0)/.. && pwd`
 
-ginkgo -r -skipPackage=acceptance $DIR
+if [[ -z "$@" ]]; then
+  ginkgo -r -skipPackage=acceptance $DIR
+else
+  ginkgo $@
+fi

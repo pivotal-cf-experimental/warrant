@@ -12,18 +12,22 @@ import (
 )
 
 var _ = Describe("using a global HTTP client", func() {
-	BeforeEach(func() {
-		network.ClearHTTPClient()
+	It("retrieves the exact same client reference for a given value of config.SkipVerifySSL", func() {
+		client1 := network.GetClient(network.Config{SkipVerifySSL: true})
+		client2 := network.GetClient(network.Config{SkipVerifySSL: true})
+
+		transportPointer1 := reflect.ValueOf(client1.Transport).Pointer()
+		transportPointer2 := reflect.ValueOf(client2.Transport).Pointer()
+		Expect(transportPointer1).To(Equal(transportPointer2))
 	})
 
-	It("retrieves the exact same client reference", func() {
-		client1 := network.GetClient(network.Config{})
-		client2 := network.GetClient(network.Config{})
+	It("retrieves difference client references for different values of config.SkipVerifySSL", func() {
+		client1 := network.GetClient(network.Config{SkipVerifySSL: true})
+		client2 := network.GetClient(network.Config{SkipVerifySSL: false})
 
-		Expect(client1).To(BeAssignableToTypeOf(&http.Client{}))
-		Expect(client1).ToNot(BeNil())
-		Expect(reflect.ValueOf(client1).Pointer()).To(Equal(reflect.ValueOf(client2).Pointer()))
-
+		transportPointer1 := reflect.ValueOf(client1.Transport).Pointer()
+		transportPointer2 := reflect.ValueOf(client2.Transport).Pointer()
+		Expect(transportPointer1).NotTo(Equal(transportPointer2))
 	})
 
 	It("uses the configuration to configure the HTTP client", func() {

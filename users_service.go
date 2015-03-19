@@ -26,16 +26,16 @@ func NewUsersService(config Config) UsersService {
 }
 
 func (us UsersService) Create(username, email, token string) (User, error) {
-	_, body, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := NewClient(us.config).makeRequest(requestArguments{
 		Method: "POST",
 		Path:   "/Users",
 		Token:  token,
-		Body: documents.CreateUserRequest{
+		Body: jsonRequestBody{documents.CreateUserRequest{
 			UserName: username,
 			Emails: []documents.Email{
 				{Value: email},
 			},
-		},
+		}},
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
@@ -43,7 +43,7 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 	}
 
 	var response documents.UserResponse
-	err = json.Unmarshal(body, &response)
+	err = json.Unmarshal(resp.Body, &response)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +52,7 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 }
 
 func (us UsersService) Get(id, token string) (User, error) {
-	_, body, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := NewClient(us.config).makeRequest(requestArguments{
 		Method: "GET",
 		Path:   fmt.Sprintf("/Users/%s", id),
 		Token:  token,
@@ -63,7 +63,7 @@ func (us UsersService) Get(id, token string) (User, error) {
 	}
 
 	var response documents.UserResponse
-	err = json.Unmarshal(body, &response)
+	err = json.Unmarshal(resp.Body, &response)
 	if err != nil {
 		panic(err)
 	}
@@ -72,7 +72,7 @@ func (us UsersService) Get(id, token string) (User, error) {
 }
 
 func (us UsersService) Delete(id, token string) error {
-	_, _, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := NewClient(us.config).makeRequest(requestArguments{
 		Method: "DELETE",
 		Path:   fmt.Sprintf("/Users/%s", id),
 		Token:  token,
@@ -86,12 +86,12 @@ func (us UsersService) Delete(id, token string) error {
 }
 
 func (us UsersService) Update(user User, token string) (User, error) {
-	_, body, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := NewClient(us.config).makeRequest(requestArguments{
 		Method:  "PUT",
 		Path:    fmt.Sprintf("/Users/%s", user.ID),
 		Token:   token,
 		IfMatch: strconv.Itoa(user.Version),
-		Body:    newUpdateUserDocumentFromUser(user),
+		Body:    jsonRequestBody{newUpdateUserDocumentFromUser(user)},
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -99,7 +99,7 @@ func (us UsersService) Update(user User, token string) (User, error) {
 	}
 
 	var response documents.UserResponse
-	err = json.Unmarshal(body, &response)
+	err = json.Unmarshal(resp.Body, &response)
 	if err != nil {
 		panic(err)
 	}
@@ -108,13 +108,13 @@ func (us UsersService) Update(user User, token string) (User, error) {
 }
 
 func (us UsersService) SetPassword(id, password, token string) error {
-	_, _, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := NewClient(us.config).makeRequest(requestArguments{
 		Method: "PUT",
 		Path:   fmt.Sprintf("/Users/%s/password", id),
 		Token:  token,
-		Body: documents.SetPasswordRequest{
+		Body: jsonRequestBody{documents.SetPasswordRequest{
 			Password: password,
-		},
+		}},
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -125,14 +125,14 @@ func (us UsersService) SetPassword(id, password, token string) error {
 }
 
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
-	_, _, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := NewClient(us.config).makeRequest(requestArguments{
 		Method: "PUT",
 		Path:   fmt.Sprintf("/Users/%s/password", id),
 		Token:  token,
-		Body: documents.ChangePasswordRequest{
+		Body: jsonRequestBody{documents.ChangePasswordRequest{
 			OldPassword: oldPassword,
 			Password:    password,
-		},
+		}},
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {

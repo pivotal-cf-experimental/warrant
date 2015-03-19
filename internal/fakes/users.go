@@ -23,6 +23,16 @@ func (u Users) Get(id string) (User, bool) {
 	return user, ok
 }
 
+func (u Users) GetByName(name string) (User, bool) {
+	for _, user := range u.store {
+		if user.UserName == name {
+			return user, true
+		}
+	}
+
+	return User{}, false
+}
+
 func (u Users) Delete(id string) bool {
 	_, ok := u.store[id]
 	delete(u.store, id)

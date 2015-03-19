@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 
 	"github.com/pivotal-cf-experimental/warrant"
 
@@ -57,6 +58,10 @@ var _ = Describe("Client", func() {
 		Expect(client.Users).To(BeAssignableToTypeOf(warrant.UsersService{}))
 	})
 
+	It("has an oauth service", func() {
+		Expect(client.OAuth).To(BeAssignableToTypeOf(warrant.OAuthService{}))
+	})
+
 	Describe("makeRequest", func() {
 		It("can make requests", func() {
 			jsonBody := map[string]interface{}{
@@ -67,15 +72,16 @@ var _ = Describe("Client", func() {
 				Method: "GET",
 				Path:   "/path",
 				Token:  token,
-				Body:   jsonBody,
+				Body:   warrant.NewJSONRequestBody(jsonBody),
 				AcceptableStatusCodes: []int{http.StatusOK},
 			})
-			status, body, err := client.MakeRequest(requestArgs)
+			resp, err := client.MakeRequest(requestArgs)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(status).To(Equal(http.StatusOK))
-			Expect(body).To(MatchJSON(`{
+			Expect(resp.Code).To(Equal(http.StatusOK))
+			Expect(resp.Body).To(MatchJSON(`{
 				"body": "{\"hello\":\"goodbye\"}",
 				"headers": {
+					"Accept":          ["application/json"],
 					"Accept-Encoding": ["gzip"],
 					"Authorization":   ["Bearer TOKEN"],
 					"Content-Length":  ["19"],
@@ -85,6 +91,56 @@ var _ = Describe("Client", func() {
 			}`))
 		})
 
+		Context("Following redirects", func() {
+			var testRequestArgs warrant.TestRequestArguments
+
+			BeforeEach(func() {
+				redirectingServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					if req.URL.Path == "/redirect" {
+						w.Header().Set("Location", "/noredirect")
+						w.WriteHeader(http.StatusFound)
+						return
+					}
+
+					w.Write([]byte("did not redirect"))
+				}))
+
+				client = warrant.NewClient(warrant.Config{
+					Host:          redirectingServer.URL,
+					SkipVerifySSL: true,
+				})
+
+				testRequestArgs = warrant.TestRequestArguments{
+					Method: "GET",
+					Path:   "/redirect",
+					Token:  token,
+					AcceptableStatusCodes: []int{http.StatusFound, http.StatusOK},
+				}
+			})
+
+			Context("when DoNotFollowRedirects is not set", func() {
+				It("follows redirects to their location", func() {
+					requestArgs := warrant.NewRequestArguments(testRequestArgs)
+					resp, err := client.MakeRequest(requestArgs)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Headers.Get("Location")).To(Equal(""))
+					Expect(resp.Body).To(ContainSubstring("did not redirect"))
+				})
+			})
+
+			Context("when DoNotFollowRedirects is set", func() {
+				It("does not follow redirects to their location", func() {
+					testRequestArgs.DoNotFollowRedirects = true
+					requestArgs := warrant.NewRequestArguments(testRequestArgs)
+					resp, err := client.MakeRequest(requestArgs)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.Code).To(Equal(http.StatusFound))
+					Expect(resp.Headers.Get("Location")).To(Equal("/noredirect"))
+				})
+			})
+		})
+
 		Context("Headers", func() {
 			Context("when there is a JSON body", func() {
 				It("includes the Content-Type header in the request", func() {
@@ -92,15 +148,16 @@ var _ = Describe("Client", func() {
 						Method: "GET",
 						Path:   "/path",
 						Token:  token,
-						Body:   map[string]string{"hello": "world"},
+						Body:   warrant.NewJSONRequestBody(map[string]string{"hello": "world"}),
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
-					status, body, err := client.MakeRequest(requestArgs)
+					resp, err := client.MakeRequest(requestArgs)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(status).To(Equal(http.StatusOK))
-					Expect(body).To(MatchJSON(`{
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
 						"body": "{\"hello\":\"world\"}",
 						"headers":{
+							"Accept":          ["application/json"],
 							"Accept-Encoding": ["gzip"],
 							"Authorization":   ["Bearer TOKEN"],
 							"Content-Length":  ["17"],
@@ -120,12 +177,13 @@ var _ = Describe("Client", func() {
 						Body:   nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
-					status, body, err := client.MakeRequest(requestArgs)
+					resp, err := client.MakeRequest(requestArgs)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(status).To(Equal(http.StatusOK))
-					Expect(body).To(MatchJSON(`{
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
 						"body": "",
 						"headers": {
+							"Accept":          ["application/json"],
 							"Accept-Encoding": ["gzip"],
 							"Authorization":   ["Bearer TOKEN"],
 							"User-Agent":      ["Go 1.1 package http"]
@@ -144,12 +202,13 @@ var _ = Describe("Client", func() {
 						Body:    nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
-					status, body, err := client.MakeRequest(requestArgs)
+					resp, err := client.MakeRequest(requestArgs)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(status).To(Equal(http.StatusOK))
-					Expect(body).To(MatchJSON(`{
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
 						"body": "",
 						"headers": {
+							"Accept":          ["application/json"],
 							"Accept-Encoding": ["gzip"],
 							"Authorization":   ["Bearer TOKEN"],
 							"If-Match":        ["45"],
@@ -168,12 +227,13 @@ var _ = Describe("Client", func() {
 						Body:   nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
-					status, body, err := client.MakeRequest(requestArgs)
+					resp, err := client.MakeRequest(requestArgs)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(status).To(Equal(http.StatusOK))
-					Expect(body).To(MatchJSON(`{
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
 						"body": "",
 						"headers": {
+							"Accept":          ["application/json"],
 							"Accept-Encoding": ["gzip"],
 							"Authorization":   ["Bearer TOKEN"],
 							"User-Agent":      ["Go 1.1 package http"]
@@ -189,11 +249,11 @@ var _ = Describe("Client", func() {
 					Method: "GET",
 					Path:   "/path",
 					Token:  token,
-					Body:   unsupportedJSONType,
+					Body:   warrant.NewJSONRequestBody(unsupportedJSONType),
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(BeAssignableToTypeOf(warrant.RequestBodyMarshalError{}))
 			})
 
@@ -209,7 +269,7 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.RequestConfigurationError{}))
 			})
@@ -226,7 +286,7 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.RequestHTTPError{}))
 			})
@@ -248,7 +308,7 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.ResponseReadError{}))
 
@@ -263,7 +323,7 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusTeapot},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
 			})
@@ -284,7 +344,7 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 
@@ -307,11 +367,52 @@ var _ = Describe("Client", func() {
 					Body:   nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
-				_, _, err := client.MakeRequest(requestArgs)
+				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 
 				lockedServer.Close()
+			})
+		})
+	})
+})
+
+var _ = Describe("RequestBodyEncoder", func() {
+	Describe("JSONRequestBody", func() {
+		Describe("Encode", func() {
+			It("returns a JSON encoded representation of the given object with proper content type", func() {
+				var object struct {
+					Hello string `json:"hello"`
+				}
+				object.Hello = "goodbye"
+
+				body, contentType, err := warrant.NewJSONRequestBody(object).Encode()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ioutil.ReadAll(body)).To(MatchJSON(`{
+					"hello": "goodbye"
+				}`))
+				Expect(contentType).To(Equal("application/json"))
+			})
+
+			It("returns an error when the JSON cannot be encoded", func() {
+				_, _, err := warrant.NewJSONRequestBody(func() {}).Encode()
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("FormRequestBody", func() {
+		Describe("Encode", func() {
+			It("returns a form URL encoded representation of the given object with proper content type", func() {
+				values := url.Values{
+					"hello": []string{"goodbye"},
+					"black": []string{"white"},
+				}
+
+				body, contentType, err := warrant.NewFormRequestBody(values).Encode()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ioutil.ReadAll(body)).To(BeEquivalentTo("black=white&hello=goodbye"))
+				Expect(contentType).To(Equal("application/x-www-form-urlencoded"))
 			})
 		})
 	})

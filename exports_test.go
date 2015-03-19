@@ -1,12 +1,15 @@
 package warrant
 
+import "net/url"
+
 type TestRequestArguments struct {
 	Method                string
 	Path                  string
 	Token                 string
 	IfMatch               string
-	Body                  interface{}
+	Body                  requestBody
 	AcceptableStatusCodes []int
+	DoNotFollowRedirects  bool
 }
 
 func NewRequestArguments(args TestRequestArguments) requestArguments {
@@ -17,9 +20,18 @@ func NewRequestArguments(args TestRequestArguments) requestArguments {
 		IfMatch: args.IfMatch,
 		Body:    args.Body,
 		AcceptableStatusCodes: args.AcceptableStatusCodes,
+		DoNotFollowRedirects:  args.DoNotFollowRedirects,
 	}
 }
 
-func (client Client) MakeRequest(requestArgs requestArguments) (int, []byte, error) {
+func (client Client) MakeRequest(requestArgs requestArguments) (response, error) {
 	return client.makeRequest(requestArgs)
+}
+
+func NewJSONRequestBody(body interface{}) jsonRequestBody {
+	return jsonRequestBody{body}
+}
+
+func NewFormRequestBody(body url.Values) formRequestBody {
+	return formRequestBody(body)
 }
