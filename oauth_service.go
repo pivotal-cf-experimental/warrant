@@ -15,7 +15,7 @@ func NewOAuthService(config Config) OAuthService {
 	}
 }
 
-func (os OAuthService) GetToken(username, password, client, redirectURI string) (string, error) {
+func (os OAuthService) GetUserToken(username, password, client, redirectURI string) (string, error) {
 	query := url.Values{
 		"client_id":     []string{"cf"},
 		"redirect_uri":  []string{redirectURI},

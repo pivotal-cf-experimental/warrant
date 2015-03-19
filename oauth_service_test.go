@@ -32,9 +32,9 @@ var _ = Describe("OAuthService", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	Describe("GetToken", func() {
+	Describe("GetUserToken", func() {
 		It("returns a valid token given a username and password", func() {
-			token, err := service.GetToken("username", "password", "cf", "https://cf.example.com/redirect")
+			token, err := service.GetUserToken("username", "password", "cf", "https://cf.example.com/redirect")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).NotTo(BeEmpty())
 
@@ -43,12 +43,12 @@ var _ = Describe("OAuthService", func() {
 		})
 
 		It("returns an error when the request does not succeed", func() {
-			_, err := service.GetToken("unknown-user", "password", "cf", "https://cf.example.com/redirect")
+			_, err := service.GetUserToken("unknown-user", "password", "cf", "https://cf.example.com/redirect")
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 
 		It("returns an error when the response is not parsable", func() {
-			_, err := service.GetToken("username", "password", "cf", "%%%")
+			_, err := service.GetUserToken("username", "password", "cf", "%%%")
 			Expect(err).To(MatchError(`parse %%%: invalid URL escape "%%%"`))
 		})
 	})
