@@ -27,7 +27,7 @@ func newUserFromCreateDocument(request documents.CreateUserRequest) User {
 		emails = append(emails, email.Value)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	return User{
 		ID:        GenerateID(),
 		UserName:  request.UserName,

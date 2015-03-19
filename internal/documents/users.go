@@ -1,6 +1,9 @@
 package documents
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CreateUserRequest struct {
 	UserName string   `json:"userName"`
@@ -47,6 +50,15 @@ type Meta struct {
 	Version      int       `json:"version"`
 	Created      time.Time `json:"created"`
 	LastModified time.Time `json:"lastModified"`
+}
+
+// TODO: UAA team is investigating this hack as a possible bug
+func (m Meta) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"version":      m.Version,
+		"created":      m.Created.Format("2006-01-02T15:04:05.000Z"),
+		"lastModified": m.LastModified.Format("2006-01-02T15:04:05.000Z"),
+	})
 }
 
 type Group struct{}
