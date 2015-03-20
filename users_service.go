@@ -26,7 +26,7 @@ func NewUsersService(config Config) UsersService {
 }
 
 func (us UsersService) Create(username, email, token string) (User, error) {
-	resp, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := New(us.config).makeRequest(requestArguments{
 		Method: "POST",
 		Path:   "/Users",
 		Token:  token,
@@ -52,7 +52,7 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 }
 
 func (us UsersService) Get(id, token string) (User, error) {
-	resp, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := New(us.config).makeRequest(requestArguments{
 		Method: "GET",
 		Path:   fmt.Sprintf("/Users/%s", id),
 		Token:  token,
@@ -72,7 +72,7 @@ func (us UsersService) Get(id, token string) (User, error) {
 }
 
 func (us UsersService) Delete(id, token string) error {
-	_, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := New(us.config).makeRequest(requestArguments{
 		Method: "DELETE",
 		Path:   fmt.Sprintf("/Users/%s", id),
 		Token:  token,
@@ -86,7 +86,7 @@ func (us UsersService) Delete(id, token string) error {
 }
 
 func (us UsersService) Update(user User, token string) (User, error) {
-	resp, err := NewClient(us.config).makeRequest(requestArguments{
+	resp, err := New(us.config).makeRequest(requestArguments{
 		Method:  "PUT",
 		Path:    fmt.Sprintf("/Users/%s", user.ID),
 		Token:   token,
@@ -108,7 +108,7 @@ func (us UsersService) Update(user User, token string) (User, error) {
 }
 
 func (us UsersService) SetPassword(id, password, token string) error {
-	_, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := New(us.config).makeRequest(requestArguments{
 		Method: "PUT",
 		Path:   fmt.Sprintf("/Users/%s/password", id),
 		Token:  token,
@@ -125,7 +125,7 @@ func (us UsersService) SetPassword(id, password, token string) error {
 }
 
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
-	_, err := NewClient(us.config).makeRequest(requestArguments{
+	_, err := New(us.config).makeRequest(requestArguments{
 		Method: "PUT",
 		Path:   fmt.Sprintf("/Users/%s/password", id),
 		Token:  token,

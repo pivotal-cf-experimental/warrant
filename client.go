@@ -57,21 +57,23 @@ type response struct {
 	Headers http.Header
 }
 
-type Client struct {
-	config Config
-	Users  UsersService
-	OAuth  OAuthService
+type Warrant struct {
+	config  Config
+	Users   UsersService
+	OAuth   OAuthService
+	Clients ClientsService
 }
 
-func NewClient(config Config) Client {
-	return Client{
-		config: config,
-		Users:  NewUsersService(config),
-		OAuth:  NewOAuthService(config),
+func New(config Config) Warrant {
+	return Warrant{
+		config:  config,
+		Users:   NewUsersService(config),
+		OAuth:   NewOAuthService(config),
+		Clients: NewClientsService(config),
 	}
 }
 
-func (c Client) makeRequest(requestArgs requestArguments) (response, error) {
+func (w Warrant) makeRequest(requestArgs requestArguments) (response, error) {
 	if requestArgs.AcceptableStatusCodes == nil {
 		panic("acceptable status codes for this request were not set")
 	}
@@ -86,7 +88,7 @@ func (c Client) makeRequest(requestArgs requestArguments) (response, error) {
 		}
 	}
 
-	requestURL := c.config.Host + requestArgs.Path
+	requestURL := w.config.Host + requestArgs.Path
 	request, err := http.NewRequest(requestArgs.Method, requestURL, bodyReader)
 	if err != nil {
 		return response{}, newRequestConfigurationError(err)
@@ -101,16 +103,16 @@ func (c Client) makeRequest(requestArgs requestArguments) (response, error) {
 		request.Header.Set("If-Match", requestArgs.IfMatch)
 	}
 
-	c.printRequest(request)
+	w.printRequest(request)
 
 	var resp *http.Response
 	if requestArgs.DoNotFollowRedirects {
 		resp, err = network.GetClient(network.Config{
-			SkipVerifySSL: c.config.SkipVerifySSL,
+			SkipVerifySSL: w.config.SkipVerifySSL,
 		}).Transport.RoundTrip(request)
 	} else {
 		resp, err = network.GetClient(network.Config{
-			SkipVerifySSL: c.config.SkipVerifySSL,
+			SkipVerifySSL: w.config.SkipVerifySSL,
 		}).Do(request)
 	}
 	if err != nil {
@@ -127,7 +129,7 @@ func (c Client) makeRequest(requestArgs requestArguments) (response, error) {
 		Body:    responseBody,
 		Headers: resp.Header,
 	}
-	c.printResponse(parsedResponse)
+	w.printResponse(parsedResponse)
 
 	if resp.StatusCode == http.StatusNotFound {
 		return response{}, newNotFoundError(responseBody)
@@ -146,7 +148,7 @@ func (c Client) makeRequest(requestArgs requestArguments) (response, error) {
 	return response{}, newUnexpectedStatusError(resp.StatusCode, responseBody)
 }
 
-func (c Client) printRequest(request *http.Request) {
+func (w Warrant) printRequest(request *http.Request) {
 	if os.Getenv("TRACE") != "" {
 		bodyCopy := bytes.NewBuffer([]byte{})
 		if request.Body != nil {
@@ -163,7 +165,7 @@ func (c Client) printRequest(request *http.Request) {
 	}
 }
 
-func (c Client) printResponse(resp response) {
+func (w Warrant) printResponse(resp response) {
 	if os.Getenv("TRACE") != "" {
 		fmt.Printf("RESPONSE: %d %s %+v\n", resp.Code, resp.Body, resp.Headers)
 	}

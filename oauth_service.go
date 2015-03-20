@@ -38,7 +38,7 @@ func (os OAuthService) GetUserToken(username, password, client, redirectURI stri
 		DoNotFollowRedirects:  true,
 	}
 
-	resp, err := NewClient(os.config).makeRequest(req)
+	resp, err := New(os.config).makeRequest(req)
 	if err != nil {
 		return "", err
 	}

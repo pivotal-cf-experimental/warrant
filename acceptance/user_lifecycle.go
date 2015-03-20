@@ -12,14 +12,14 @@ import (
 
 var _ = Describe("User Lifecycle", func() {
 	var (
-		client warrant.Client
+		client warrant.Warrant
 		token  string
 	)
 
 	BeforeEach(func() {
 		token = os.Getenv("UAA_TOKEN")
 
-		client = warrant.NewClient(warrant.Config{
+		client = warrant.New(warrant.Config{
 			Host:          os.Getenv("UAA_HOST"),
 			SkipVerifySSL: true,
 		})

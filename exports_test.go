@@ -24,8 +24,8 @@ func NewRequestArguments(args TestRequestArguments) requestArguments {
 	}
 }
 
-func (client Client) MakeRequest(requestArgs requestArguments) (response, error) {
-	return client.makeRequest(requestArgs)
+func (w Warrant) MakeRequest(requestArgs requestArguments) (response, error) {
+	return w.makeRequest(requestArgs)
 }
 
 func NewJSONRequestBody(body interface{}) jsonRequestBody {

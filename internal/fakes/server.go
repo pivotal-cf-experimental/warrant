@@ -18,6 +18,7 @@ type UAAServer struct {
 	server    *httptest.Server
 	Tokenizer Tokenizer
 	Users     *Users
+	Clients   *Clients
 }
 
 func NewUAAServer() *UAAServer {
@@ -26,6 +27,7 @@ func NewUAAServer() *UAAServer {
 		server:    httptest.NewUnstartedServer(router),
 		Tokenizer: NewTokenizer("this is the encryption key"),
 		Users:     NewUsers(),
+		Clients:   NewClients(),
 	}
 
 	router.HandleFunc("/Users", server.CreateUser).Methods("POST")
@@ -35,6 +37,8 @@ func NewUAAServer() *UAAServer {
 	router.HandleFunc("/Users/{guid}/password", server.UpdateUserPassword).Methods("PUT")
 
 	router.HandleFunc("/oauth/authorize", server.OAuthAuthorize).Methods("POST")
+	router.HandleFunc("/oauth/clients/{guid}", server.GetClient).Methods("GET")
+	router.HandleFunc("/oauth/clients", server.CreateClient).Methods("POST")
 
 	return server
 }

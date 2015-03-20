@@ -18,7 +18,7 @@ var unsupportedJSONType = func() {}
 var _ = Describe("Client", func() {
 	var token string
 	var fakeServer *httptest.Server
-	var client warrant.Client
+	var client warrant.Warrant
 
 	BeforeEach(func() {
 		token = "TOKEN"
@@ -44,7 +44,7 @@ var _ = Describe("Client", func() {
 			w.Write(response)
 		}))
 
-		client = warrant.NewClient(warrant.Config{
+		client = warrant.New(warrant.Config{
 			Host:          fakeServer.URL,
 			SkipVerifySSL: true,
 		})
@@ -105,7 +105,7 @@ var _ = Describe("Client", func() {
 					w.Write([]byte("did not redirect"))
 				}))
 
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host:          redirectingServer.URL,
 					SkipVerifySSL: true,
 				})
@@ -258,7 +258,7 @@ var _ = Describe("Client", func() {
 			})
 
 			It("returns a RequestConfigurationError when the request params are bad", func() {
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host: "://example.com",
 				})
 
@@ -275,7 +275,7 @@ var _ = Describe("Client", func() {
 			})
 
 			It("returns a RequestHTTPError when the request fails", func() {
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host: "banana://example.com",
 				})
 
@@ -297,7 +297,7 @@ var _ = Describe("Client", func() {
 					w.Write([]byte("{}"))
 				}))
 
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host: unintelligibleServer.URL,
 				})
 
@@ -333,7 +333,7 @@ var _ = Describe("Client", func() {
 					w.WriteHeader(http.StatusNotFound)
 				}))
 
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host: missingServer.URL,
 				})
 
@@ -356,7 +356,7 @@ var _ = Describe("Client", func() {
 					w.WriteHeader(http.StatusUnauthorized)
 				}))
 
-				client = warrant.NewClient(warrant.Config{
+				client = warrant.New(warrant.Config{
 					Host: lockedServer.URL,
 				})
 

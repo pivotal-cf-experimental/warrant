@@ -14,17 +14,25 @@ import (
 
 var _ = Describe("Passwords", func() {
 	var (
-		client warrant.Client
+		client warrant.Warrant
 		token  string
 	)
 
 	BeforeEach(func() {
 		token = os.Getenv("UAA_TOKEN")
 
-		client = warrant.NewClient(warrant.Config{
+		client = warrant.New(warrant.Config{
 			Host:          os.Getenv("UAA_HOST"),
 			SkipVerifySSL: true,
 		})
+	})
+
+	AfterEach(func() {
+		// TODO: replace with implementation that does not call out to UAAC
+		cmd := exec.Command("uaac", "token", "client", "get", os.Getenv("UAA_ADMIN_CLIENT"), "-s", os.Getenv("UAA_ADMIN_SECRET"))
+		output, err := cmd.Output()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(output).To(ContainSubstring("Successfully fetched token via client credentials grant."))
 	})
 
 	It("allows a user password to be set/updated", func() {

@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("Tokens", func() {
 	var (
-		client    warrant.Client
+		client    warrant.Warrant
 		token     string
 		user      warrant.User
 		userToken string
@@ -22,15 +22,14 @@ var _ = Describe("Tokens", func() {
 	BeforeEach(func() {
 		token = os.Getenv("UAA_TOKEN")
 
-		client = warrant.NewClient(warrant.Config{
+		client = warrant.New(warrant.Config{
 			Host:          os.Getenv("UAA_HOST"),
 			SkipVerifySSL: true,
 		})
 	})
 
 	AfterEach(func() {
-		var err error
-		err = client.Users.Delete(user.ID, token)
+		err := client.Users.Delete(user.ID, token)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
