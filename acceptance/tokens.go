@@ -47,7 +47,7 @@ var _ = Describe("Tokens", func() {
 
 		By("retrieving a user token", func() {
 			var err error
-			userToken, err = client.OAuth.GetUserToken("username", "password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
+			userToken, err = client.Users.GetToken("username", "password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
 			Expect(err).NotTo(HaveOccurred())
 		})
 

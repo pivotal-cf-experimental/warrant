@@ -58,8 +58,8 @@ var _ = Describe("Client", func() {
 		Expect(client.Users).To(BeAssignableToTypeOf(warrant.UsersService{}))
 	})
 
-	It("has an oauth service", func() {
-		Expect(client.OAuth).To(BeAssignableToTypeOf(warrant.OAuthService{}))
+	It("has an clients service", func() {
+		Expect(client.Clients).To(BeAssignableToTypeOf(warrant.ClientsService{}))
 	})
 
 	Describe("makeRequest", func() {

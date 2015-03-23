@@ -60,7 +60,6 @@ type response struct {
 type Warrant struct {
 	config  Config
 	Users   UsersService
-	OAuth   OAuthService
 	Clients ClientsService
 }
 
@@ -68,7 +67,6 @@ func New(config Config) Warrant {
 	return Warrant{
 		config:  config,
 		Users:   NewUsersService(config),
-		OAuth:   NewOAuthService(config),
 		Clients: NewClientsService(config),
 	}
 }

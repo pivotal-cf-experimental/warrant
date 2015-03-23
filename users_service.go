@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
@@ -140,6 +141,47 @@ func (us UsersService) ChangePassword(id, oldPassword, password, token string) e
 	}
 
 	return nil
+}
+
+func (us UsersService) GetToken(username, password, client, redirectURI string) (string, error) {
+	query := url.Values{
+		"client_id":     []string{"cf"},
+		"redirect_uri":  []string{redirectURI},
+		"response_type": []string{"token"},
+	}
+
+	requestPath := url.URL{
+		Path:     "/oauth/authorize",
+		RawQuery: query.Encode(),
+	}
+	req := requestArguments{
+		Method: "POST",
+		Path:   requestPath.String(),
+		Body: formRequestBody{
+			"username": []string{username},
+			"password": []string{password},
+			"source":   []string{"credentials"},
+		},
+		AcceptableStatusCodes: []int{http.StatusFound},
+		DoNotFollowRedirects:  true,
+	}
+
+	resp, err := New(us.config).makeRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	locationURL, err := url.Parse(resp.Headers.Get("Location"))
+	if err != nil {
+		return "", err
+	}
+
+	locationQuery, err := url.ParseQuery(locationURL.Fragment)
+	if err != nil {
+		return "", err
+	}
+
+	return locationQuery.Get("access_token"), nil
 }
 
 func newUpdateUserDocumentFromUser(user User) documents.UpdateUserRequest {
