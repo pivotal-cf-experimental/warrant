@@ -10,9 +10,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-const (
-	Schema = "urn:scim:schemas:core:1.0"
-)
+const Schema = "urn:scim:schemas:core:1.0"
 
 var Schemas = []string{Schema}
 

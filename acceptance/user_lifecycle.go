@@ -34,7 +34,7 @@ var _ = Describe("User Lifecycle", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(user.UserName).To(Equal("user-name"))
 			Expect(user.Emails).To(ConsistOf([]string{"user@example.com"}))
-			Expect(user.CreatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute)) // TODO: this is weird, but server time could be divergent from local time
+			Expect(user.CreatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 			Expect(user.UpdatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 			Expect(user.Version).To(Equal(0))
 			Expect(user.Emails).To(ConsistOf([]string{"user@example.com"}))
