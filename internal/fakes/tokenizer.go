@@ -66,6 +66,7 @@ type Token struct {
 	Scopes    []string
 	Audiences []string
 	UserID    string
+	ClientID  string
 }
 
 func (t Token) HasScopes(scopes []string) bool {

@@ -18,7 +18,7 @@ var _ = Describe("UsersService", func() {
 			Host:          fakeUAAServer.URL(),
 			SkipVerifySSL: true,
 		})
-		token = fakeUAAServer.TokenFor([]string{"scim.write", "scim.read", "password.write"}, []string{"scim", "password"})
+		token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write", "scim.read", "password.write"}, []string{"scim", "password"})
 	})
 
 	Describe("Create", func() {
@@ -42,13 +42,13 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
 			_, err := service.Create("created-user", "user@example.com", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.write"}, []string{"banana"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
 			_, err := service.Create("created-user", "user@example.com", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -75,13 +75,13 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("requires the scim.read scope", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
 			_, err := service.Get(createdUser.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.read"}, []string{"banana"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
 			_, err := service.Get(createdUser.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -105,13 +105,13 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
 			err := service.Delete(user.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.write"}, []string{"banana"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
 			err := service.Delete(user.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -142,13 +142,13 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
 			_, err := service.Update(user, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.TokenFor([]string{"scim.write"}, []string{"banana"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
 			_, err := service.Update(user, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -181,13 +181,13 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("requires the password.write scope", func() {
-			token = fakeUAAServer.TokenFor([]string{"password.banana"}, []string{"password"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"password.banana"}, []string{"password"})
 			err := service.SetPassword(user.ID, "password", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the password audience", func() {
-			token = fakeUAAServer.TokenFor([]string{"password.write"}, []string{"banana"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"password.write"}, []string{"banana"})
 			err := service.SetPassword(user.ID, "password", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -232,13 +232,13 @@ var _ = Describe("UsersService", func() {
 			})
 
 			It("requires the password.write scope", func() {
-				token = fakeUAAServer.TokenFor([]string{"password.banana"}, []string{"password"})
+				token = fakeUAAServer.ClientTokenFor("admin", []string{"password.banana"}, []string{"password"})
 				err := service.ChangePassword(user.ID, "old-password", "new-password", token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 			})
 
 			It("requires the password audience", func() {
-				token = fakeUAAServer.TokenFor([]string{"password.write"}, []string{"banana"})
+				token = fakeUAAServer.ClientTokenFor("admin", []string{"password.write"}, []string{"banana"})
 				err := service.ChangePassword(user.ID, "old-password", "new-password", token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 			})
@@ -270,6 +270,7 @@ var _ = Describe("UsersService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).NotTo(BeEmpty())
 
+			// TODO: don't use fake to decode the token
 			decodedToken := fakeUAAServer.Tokenizer.Decrypt(token)
 			Expect(decodedToken.UserID).To(Equal(user.ID))
 		})

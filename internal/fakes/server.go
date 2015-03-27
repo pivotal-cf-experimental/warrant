@@ -39,6 +39,7 @@ func NewUAAServer() *UAAServer {
 	router.HandleFunc("/oauth/authorize", server.OAuthAuthorize).Methods("POST")
 	router.HandleFunc("/oauth/clients/{guid}", server.GetClient).Methods("GET")
 	router.HandleFunc("/oauth/clients", server.CreateClient).Methods("POST")
+	router.HandleFunc("/oauth/token", server.OAuthToken).Methods("POST")
 
 	return server
 }
@@ -59,13 +60,16 @@ func (s *UAAServer) URL() string {
 	return s.server.URL
 }
 
-func (s *UAAServer) TokenFor(scopes, audiences []string) string {
+// TODO: this should not be publicly available
+func (s *UAAServer) ClientTokenFor(clientID string, scopes, audiences []string) string {
 	return s.Tokenizer.Encrypt(Token{
+		ClientID:  clientID,
 		Scopes:    scopes,
 		Audiences: audiences,
 	})
 }
 
+// TODO: this should not be publicly available
 func (s *UAAServer) UserTokenFor(userID string, scopes, audiences []string) string {
 	return s.Tokenizer.Encrypt(Token{
 		UserID:    userID,

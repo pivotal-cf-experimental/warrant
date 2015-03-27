@@ -22,7 +22,7 @@ var _ = Describe("ClientsService", func() {
 			SkipVerifySSL: true,
 		}
 		service = warrant.NewClientsService(config)
-		token = fakeUAAServer.TokenFor([]string{"clients.write", "clients.read"}, []string{"clients"})
+		token = fakeUAAServer.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})
 	})
 
 	Describe("Create/Get", func() {
@@ -47,6 +47,37 @@ var _ = Describe("ClientsService", func() {
 		It("responds with an error when the client cannot be found", func() {
 			_, err := service.Get("unknown-client", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+		})
+	})
+
+	Describe("GetToken", func() {
+		var (
+			client       warrant.Client
+			clientSecret string
+		)
+
+		BeforeEach(func() {
+			client = warrant.Client{
+				ID:                   "client-id",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+			}
+			clientSecret = "client-secret"
+
+			err := service.Create(client, clientSecret, token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("retrieves a token for the client given a valid secret", func() {
+			clientToken, err := service.GetToken(client.ID, clientSecret)
+			Expect(err).NotTo(HaveOccurred())
+
+			// TODO: don't use fake to decode the token
+			decodedToken := fakeUAAServer.Tokenizer.Decrypt(clientToken)
+			Expect(decodedToken.ClientID).To(Equal(client.ID))
 		})
 	})
 })

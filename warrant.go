@@ -2,6 +2,7 @@ package warrant
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,7 +23,7 @@ type Config struct {
 type requestArguments struct {
 	Method                string
 	Path                  string
-	Token                 string
+	Authorization         authorization
 	IfMatch               string
 	Body                  requestBody
 	AcceptableStatusCodes []int
@@ -49,6 +50,26 @@ type formRequestBody url.Values
 
 func (f formRequestBody) Encode() (requestBody io.Reader, contentType string, err error) {
 	return strings.NewReader(url.Values(f).Encode()), "application/x-www-form-urlencoded", nil
+}
+
+type authorization interface {
+	Authorization() string
+}
+
+type tokenAuthorization string
+
+func (a tokenAuthorization) Authorization() string {
+	return fmt.Sprintf("Bearer %s", a)
+}
+
+type basicAuthorization struct {
+	Username string
+	Password string
+}
+
+func (b basicAuthorization) Authorization() string {
+	auth := b.Username + ":" + b.Password
+	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(auth)))
 }
 
 type response struct {
@@ -91,7 +112,11 @@ func (w Warrant) makeRequest(requestArgs requestArguments) (response, error) {
 	if err != nil {
 		return response{}, newRequestConfigurationError(err)
 	}
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestArgs.Token))
+
+	if requestArgs.Authorization != nil {
+		request.Header.Set("Authorization", requestArgs.Authorization.Authorization())
+	}
+
 	request.Header.Set("Accept", "application/json")
 
 	if contentType != "" {

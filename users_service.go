@@ -26,9 +26,9 @@ func NewUsersService(config Config) UsersService {
 
 func (us UsersService) Create(username, email, token string) (User, error) {
 	resp, err := New(us.config).makeRequest(requestArguments{
-		Method: "POST",
-		Path:   "/Users",
-		Token:  token,
+		Method:        "POST",
+		Path:          "/Users",
+		Authorization: tokenAuthorization(token),
 		Body: jsonRequestBody{documents.CreateUserRequest{
 			UserName: username,
 			Emails: []documents.Email{
@@ -52,9 +52,9 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 
 func (us UsersService) Get(id, token string) (User, error) {
 	resp, err := New(us.config).makeRequest(requestArguments{
-		Method: "GET",
-		Path:   fmt.Sprintf("/Users/%s", id),
-		Token:  token,
+		Method:                "GET",
+		Path:                  fmt.Sprintf("/Users/%s", id),
+		Authorization:         tokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -72,9 +72,9 @@ func (us UsersService) Get(id, token string) (User, error) {
 
 func (us UsersService) Delete(id, token string) error {
 	_, err := New(us.config).makeRequest(requestArguments{
-		Method: "DELETE",
-		Path:   fmt.Sprintf("/Users/%s", id),
-		Token:  token,
+		Method:                "DELETE",
+		Path:                  fmt.Sprintf("/Users/%s", id),
+		Authorization:         tokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -86,11 +86,11 @@ func (us UsersService) Delete(id, token string) error {
 
 func (us UsersService) Update(user User, token string) (User, error) {
 	resp, err := New(us.config).makeRequest(requestArguments{
-		Method:  "PUT",
-		Path:    fmt.Sprintf("/Users/%s", user.ID),
-		Token:   token,
-		IfMatch: strconv.Itoa(user.Version),
-		Body:    jsonRequestBody{newUpdateUserDocumentFromUser(user)},
+		Method:        "PUT",
+		Path:          fmt.Sprintf("/Users/%s", user.ID),
+		Authorization: tokenAuthorization(token),
+		IfMatch:       strconv.Itoa(user.Version),
+		Body:          jsonRequestBody{newUpdateUserDocumentFromUser(user)},
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -108,9 +108,9 @@ func (us UsersService) Update(user User, token string) (User, error) {
 
 func (us UsersService) SetPassword(id, password, token string) error {
 	_, err := New(us.config).makeRequest(requestArguments{
-		Method: "PUT",
-		Path:   fmt.Sprintf("/Users/%s/password", id),
-		Token:  token,
+		Method:        "PUT",
+		Path:          fmt.Sprintf("/Users/%s/password", id),
+		Authorization: tokenAuthorization(token),
 		Body: jsonRequestBody{documents.SetPasswordRequest{
 			Password: password,
 		}},
@@ -125,9 +125,9 @@ func (us UsersService) SetPassword(id, password, token string) error {
 
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
 	_, err := New(us.config).makeRequest(requestArguments{
-		Method: "PUT",
-		Path:   fmt.Sprintf("/Users/%s/password", id),
-		Token:  token,
+		Method:        "PUT",
+		Path:          fmt.Sprintf("/Users/%s/password", id),
+		Authorization: tokenAuthorization(token),
 		Body: jsonRequestBody{documents.ChangePasswordRequest{
 			OldPassword: oldPassword,
 			Password:    password,

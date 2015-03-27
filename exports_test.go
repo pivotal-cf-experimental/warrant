@@ -5,7 +5,7 @@ import "net/url"
 type TestRequestArguments struct {
 	Method                string
 	Path                  string
-	Token                 string
+	Authorization         authorization
 	IfMatch               string
 	Body                  requestBody
 	AcceptableStatusCodes []int
@@ -14,11 +14,11 @@ type TestRequestArguments struct {
 
 func NewRequestArguments(args TestRequestArguments) requestArguments {
 	return requestArguments{
-		Method:  args.Method,
-		Path:    args.Path,
-		Token:   args.Token,
-		IfMatch: args.IfMatch,
-		Body:    args.Body,
+		Method:        args.Method,
+		Path:          args.Path,
+		Authorization: args.Authorization,
+		IfMatch:       args.IfMatch,
+		Body:          args.Body,
 		AcceptableStatusCodes: args.AcceptableStatusCodes,
 		DoNotFollowRedirects:  args.DoNotFollowRedirects,
 	}
@@ -34,4 +34,15 @@ func NewJSONRequestBody(body interface{}) jsonRequestBody {
 
 func NewFormRequestBody(body url.Values) formRequestBody {
 	return formRequestBody(body)
+}
+
+func NewTokenAuthorization(token string) tokenAuthorization {
+	return tokenAuthorization(token)
+}
+
+func NewBasicAuthorization(username, password string) basicAuthorization {
+	return basicAuthorization{
+		Username: username,
+		Password: password,
+	}
 }

@@ -69,10 +69,10 @@ var _ = Describe("Client", func() {
 			}
 
 			requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-				Method: "GET",
-				Path:   "/path",
-				Token:  token,
-				Body:   warrant.NewJSONRequestBody(jsonBody),
+				Method:        "GET",
+				Path:          "/path",
+				Authorization: warrant.NewTokenAuthorization(token),
+				Body:          warrant.NewJSONRequestBody(jsonBody),
 				AcceptableStatusCodes: []int{http.StatusOK},
 			})
 			resp, err := client.MakeRequest(requestArgs)
@@ -111,9 +111,9 @@ var _ = Describe("Client", func() {
 				})
 
 				testRequestArgs = warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/redirect",
-					Token:  token,
+					Method:                "GET",
+					Path:                  "/redirect",
+					Authorization:         warrant.NewTokenAuthorization(token),
 					AcceptableStatusCodes: []int{http.StatusFound, http.StatusOK},
 				}
 			})
@@ -142,13 +142,85 @@ var _ = Describe("Client", func() {
 		})
 
 		Context("Headers", func() {
-			Context("when there is a JSON body", func() {
-				It("includes the Content-Type header in the request", func() {
+			Context("authorization", func() {
+				It("does not include Authorization header when there is no authorization", func() {
 					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
 						Method: "GET",
 						Path:   "/path",
-						Token:  token,
 						Body:   warrant.NewJSONRequestBody(map[string]string{"hello": "world"}),
+						AcceptableStatusCodes: []int{http.StatusOK},
+					})
+					resp, err := client.MakeRequest(requestArgs)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
+						"body": "{\"hello\":\"world\"}",
+						"headers":{
+							"Accept":          ["application/json"],
+							"Accept-Encoding": ["gzip"],
+							"Content-Length":  ["17"],
+							"Content-Type":    ["application/json"],
+							"User-Agent":      ["Go 1.1 package http"]
+						}
+					}`))
+				})
+
+				It("includes a bearer Authorization header when there is token authorization", func() {
+					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewTokenAuthorization("TOKEN"),
+						Body:          warrant.NewJSONRequestBody(map[string]string{"hello": "world"}),
+						AcceptableStatusCodes: []int{http.StatusOK},
+					})
+					resp, err := client.MakeRequest(requestArgs)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
+						"body": "{\"hello\":\"world\"}",
+						"headers":{
+							"Accept":          ["application/json"],
+							"Accept-Encoding": ["gzip"],
+							"Authorization":   ["Bearer TOKEN"],
+							"Content-Length":  ["17"],
+							"Content-Type":    ["application/json"],
+							"User-Agent":      ["Go 1.1 package http"]
+						}
+					}`))
+				})
+
+				It("includes a basic Authorization header when there is basic authorization", func() {
+					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewBasicAuthorization("username", "password"),
+						Body:          warrant.NewJSONRequestBody(map[string]string{"hello": "world"}),
+						AcceptableStatusCodes: []int{http.StatusOK},
+					})
+					resp, err := client.MakeRequest(requestArgs)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.Code).To(Equal(http.StatusOK))
+					Expect(resp.Body).To(MatchJSON(`{
+						"body": "{\"hello\":\"world\"}",
+						"headers":{
+							"Accept":          ["application/json"],
+							"Accept-Encoding": ["gzip"],
+							"Authorization":   ["Basic dXNlcm5hbWU6cGFzc3dvcmQ="],
+							"Content-Length":  ["17"],
+							"Content-Type":    ["application/json"],
+							"User-Agent":      ["Go 1.1 package http"]
+						}
+					}`))
+				})
+			})
+
+			Context("when there is a JSON body", func() {
+				It("includes the Content-Type header in the request", func() {
+					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewTokenAuthorization(token),
+						Body:          warrant.NewJSONRequestBody(map[string]string{"hello": "world"}),
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
 					resp, err := client.MakeRequest(requestArgs)
@@ -171,10 +243,10 @@ var _ = Describe("Client", func() {
 			Context("when there is no JSON body", func() {
 				It("does not include the Content-Type header in the request", func() {
 					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-						Method: "GET",
-						Path:   "/path",
-						Token:  token,
-						Body:   nil,
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewTokenAuthorization(token),
+						Body:          nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
 					resp, err := client.MakeRequest(requestArgs)
@@ -195,11 +267,11 @@ var _ = Describe("Client", func() {
 			Context("when the If-Match argument is assigned", func() {
 				It("includes the header in the request", func() {
 					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-						Method:  "GET",
-						Path:    "/path",
-						Token:   token,
-						IfMatch: "45",
-						Body:    nil,
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewTokenAuthorization(token),
+						IfMatch:       "45",
+						Body:          nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
 					resp, err := client.MakeRequest(requestArgs)
@@ -221,10 +293,10 @@ var _ = Describe("Client", func() {
 			Context("when the If-Match argument is not assigned", func() {
 				It("does not include the header in the request", func() {
 					requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-						Method: "GET",
-						Path:   "/path",
-						Token:  token,
-						Body:   nil,
+						Method:        "GET",
+						Path:          "/path",
+						Authorization: warrant.NewTokenAuthorization(token),
+						Body:          nil,
 						AcceptableStatusCodes: []int{http.StatusOK},
 					})
 					resp, err := client.MakeRequest(requestArgs)
@@ -246,10 +318,10 @@ var _ = Describe("Client", func() {
 		Context("when errors occur", func() {
 			It("returns a RequestBodyMarshalError when the request body cannot be marshalled", func() {
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  token,
-					Body:   warrant.NewJSONRequestBody(unsupportedJSONType),
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          warrant.NewJSONRequestBody(unsupportedJSONType),
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 
@@ -263,10 +335,10 @@ var _ = Describe("Client", func() {
 				})
 
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -280,10 +352,10 @@ var _ = Describe("Client", func() {
 				})
 
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -302,10 +374,10 @@ var _ = Describe("Client", func() {
 				})
 
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -317,10 +389,10 @@ var _ = Describe("Client", func() {
 
 			It("returns an UnexpectedStatusError when the response status is not an expected value", func() {
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusTeapot},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -338,10 +410,10 @@ var _ = Describe("Client", func() {
 				})
 
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -361,10 +433,10 @@ var _ = Describe("Client", func() {
 				})
 
 				requestArgs := warrant.NewRequestArguments(warrant.TestRequestArguments{
-					Method: "GET",
-					Path:   "/path",
-					Token:  "token",
-					Body:   nil,
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: warrant.NewTokenAuthorization(token),
+					Body:          nil,
 					AcceptableStatusCodes: []int{http.StatusOK},
 				})
 				_, err := client.MakeRequest(requestArgs)
@@ -414,6 +486,24 @@ var _ = Describe("RequestBodyEncoder", func() {
 				Expect(ioutil.ReadAll(body)).To(BeEquivalentTo("black=white&hello=goodbye"))
 				Expect(contentType).To(Equal("application/x-www-form-urlencoded"))
 			})
+		})
+	})
+})
+
+var _ = Describe("RequestAuthorization", func() {
+	Describe("TokenAuthorization", func() {
+		It("returns a bearer token given a token value", func() {
+			auth := warrant.NewTokenAuthorization("TOKEN")
+
+			Expect(auth.Authorization()).To(Equal("Bearer TOKEN"))
+		})
+	})
+
+	Describe("BasicAuthorization", func() {
+		It("returns a basic auth header given a username and password", func() {
+			auth := warrant.NewBasicAuthorization("username", "password")
+
+			Expect(auth.Authorization()).To(Equal("Basic dXNlcm5hbWU6cGFzc3dvcmQ="))
 		})
 	})
 })

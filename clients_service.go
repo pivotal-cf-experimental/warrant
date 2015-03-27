@@ -30,10 +30,10 @@ func NewClientsService(config Config) ClientsService {
 
 func (cs ClientsService) Create(client Client, secret, token string) error {
 	_, err := New(cs.config).makeRequest(requestArguments{
-		Method: "POST",
-		Path:   "/oauth/clients",
-		Token:  token,
-		Body:   jsonRequestBody{client.ToDocument(secret)},
+		Method:        "POST",
+		Path:          "/oauth/clients",
+		Authorization: tokenAuthorization(token),
+		Body:          jsonRequestBody{client.ToDocument(secret)},
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
@@ -45,9 +45,9 @@ func (cs ClientsService) Create(client Client, secret, token string) error {
 
 func (cs ClientsService) Get(id, token string) (Client, error) {
 	resp, err := New(cs.config).makeRequest(requestArguments{
-		Method: "GET",
-		Path:   fmt.Sprintf("/oauth/clients/%s", id),
-		Token:  token,
+		Method:                "GET",
+		Path:                  fmt.Sprintf("/oauth/clients/%s", id),
+		Authorization:         tokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
@@ -61,6 +61,33 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 	}
 
 	return newClientFromDocument(document), nil
+}
+
+func (cs ClientsService) GetToken(id, secret string) (string, error) {
+	resp, err := New(cs.config).makeRequest(requestArguments{
+		Method: "POST",
+		Path:   "/oauth/token",
+		Authorization: basicAuthorization{
+			Username: id,
+			Password: secret,
+		},
+		Body: formRequestBody{
+			"client_id":  []string{id},
+			"grant_type": []string{"client_credentials"},
+		},
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	var response documents.TokenResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		panic(err)
+	}
+
+	return response.AccessToken, nil
 }
 
 func newClientFromDocument(document documents.ClientResponse) Client {
