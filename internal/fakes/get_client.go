@@ -18,7 +18,7 @@ func (s *UAAServer) GetClient(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/oauth/clients/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	client, ok := s.Clients.Get(id)
+	client, ok := s.clients.Get(id)
 	if !ok {
 		s.NotFound(w, fmt.Sprintf("Client %s does not exist", id))
 		return

@@ -42,7 +42,7 @@ func (s *UAAServer) CreateUser(w http.ResponseWriter, req *http.Request) {
 		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
 		return
 	}
-	s.Users.Add(user)
+	s.users.Add(user)
 
 	response, err := json.Marshal(user.ToDocument())
 	if err != nil {

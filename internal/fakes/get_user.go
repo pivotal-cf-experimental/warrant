@@ -18,7 +18,7 @@ func (s *UAAServer) GetUser(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/Users/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	user, ok := s.Users.Get(id)
+	user, ok := s.users.Get(id)
 	if !ok {
 		s.NotFound(w, fmt.Sprintf("User %s does not exist", id))
 		return

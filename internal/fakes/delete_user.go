@@ -16,7 +16,7 @@ func (s *UAAServer) DeleteUser(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/Users/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	if ok := s.Users.Delete(id); !ok {
+	if ok := s.users.Delete(id); !ok {
 		s.Error(w, http.StatusNotFound, "User non-existant-user-guid does not exist", "scim_resource_not_found")
 		return
 	}

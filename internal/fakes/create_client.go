@@ -23,7 +23,7 @@ func (s *UAAServer) CreateClient(w http.ResponseWriter, req *http.Request) {
 
 	client := newClientFromDocument(document)
 
-	s.Clients.Add(client)
+	s.clients.Add(client)
 
 	response, err := json.Marshal(client.ToDocument())
 	if err != nil {

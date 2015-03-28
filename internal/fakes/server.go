@@ -16,18 +16,18 @@ var Schemas = []string{Schema}
 
 type UAAServer struct {
 	server    *httptest.Server
-	Tokenizer Tokenizer
-	Users     *Users
-	Clients   *Clients
+	tokenizer Tokenizer
+	users     *Users
+	clients   *Clients
 }
 
 func NewUAAServer() *UAAServer {
 	router := mux.NewRouter()
 	server := &UAAServer{
 		server:    httptest.NewUnstartedServer(router),
-		Tokenizer: NewTokenizer("this is the encryption key"),
-		Users:     NewUsers(),
-		Clients:   NewClients(),
+		tokenizer: NewTokenizer("this is the encryption key"),
+		users:     NewUsers(),
+		clients:   NewClients(),
 	}
 
 	router.HandleFunc("/Users", server.CreateUser).Methods("POST")
@@ -53,25 +53,24 @@ func (s *UAAServer) Close() {
 }
 
 func (s *UAAServer) Reset() {
-	s.Users.Clear()
+	s.users.Clear()
+	s.clients.Clear()
 }
 
 func (s *UAAServer) URL() string {
 	return s.server.URL
 }
 
-// TODO: this should not be publicly available
 func (s *UAAServer) ClientTokenFor(clientID string, scopes, audiences []string) string {
-	return s.Tokenizer.Encrypt(Token{
+	return s.tokenizer.Encrypt(Token{
 		ClientID:  clientID,
 		Scopes:    scopes,
 		Audiences: audiences,
 	})
 }
 
-// TODO: this should not be publicly available
 func (s *UAAServer) UserTokenFor(userID string, scopes, audiences []string) string {
-	return s.Tokenizer.Encrypt(Token{
+	return s.tokenizer.Encrypt(Token{
 		UserID:    userID,
 		Scopes:    scopes,
 		Audiences: audiences,
@@ -79,9 +78,9 @@ func (s *UAAServer) UserTokenFor(userID string, scopes, audiences []string) stri
 }
 
 func (s *UAAServer) ValidateToken(encryptedToken string, audiences, scopes []string) bool {
-	token := s.Tokenizer.Decrypt(encryptedToken)
+	token := s.tokenizer.Decrypt(encryptedToken)
 
-	return s.Tokenizer.Validate(token, Token{
+	return s.tokenizer.Validate(token, Token{
 		Audiences: audiences,
 		Scopes:    scopes,
 	})

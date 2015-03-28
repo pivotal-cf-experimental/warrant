@@ -44,7 +44,7 @@ func (s *UAAServer) UpdateUser(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/Users/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	existingUser, ok := s.Users.Get(id)
+	existingUser, ok := s.users.Get(id)
 	if !ok {
 		s.Error(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", user.ID), "scim_resource_not_found")
 		return
@@ -56,7 +56,7 @@ func (s *UAAServer) UpdateUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	s.Users.Update(user)
+	s.users.Update(user)
 
 	response, err := json.Marshal(user.ToDocument())
 	if err != nil {

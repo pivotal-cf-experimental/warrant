@@ -82,6 +82,7 @@ type Warrant struct {
 	config  Config
 	Users   UsersService
 	Clients ClientsService
+	Tokens  TokensService
 }
 
 func New(config Config) Warrant {
@@ -89,6 +90,7 @@ func New(config Config) Warrant {
 		config:  config,
 		Users:   NewUsersService(config),
 		Clients: NewClientsService(config),
+		Tokens:  NewTokensService(config),
 	}
 }
 

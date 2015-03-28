@@ -12,13 +12,17 @@ func NewClients() *Clients {
 	}
 }
 
-func (c *Clients) Add(client Client) {
+func (c Clients) Add(client Client) {
 	c.store[client.ID] = client
 }
 
-func (c *Clients) Get(id string) (Client, bool) {
+func (c Clients) Get(id string) (Client, bool) {
 	client, ok := c.store[id]
 	return client, ok
+}
+
+func (c *Clients) Clear() {
+	c.store = make(map[string]Client)
 }
 
 type Client struct {

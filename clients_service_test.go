@@ -75,8 +75,9 @@ var _ = Describe("ClientsService", func() {
 			clientToken, err := service.GetToken(client.ID, clientSecret)
 			Expect(err).NotTo(HaveOccurred())
 
-			// TODO: don't use fake to decode the token
-			decodedToken := fakeUAAServer.Tokenizer.Decrypt(clientToken)
+			tokensService := warrant.NewTokensService(config)
+			decodedToken, err := tokensService.Decode(clientToken)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(decodedToken.ClientID).To(Equal(client.ID))
 		})
 	})

@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -57,11 +56,9 @@ var _ = Describe("Tokens", func() {
 			})
 
 			By("checking that the token belongs to the user", func() {
-				// TODO: replace with implementation that does not call out to UAAC
-				cmd := exec.Command("uaac", "token", "decode", userToken)
-				output, err := cmd.Output()
+				decodedToken, err := warrantClient.Tokens.Decode(userToken)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(output).To(ContainSubstring(fmt.Sprintf("user_id: %s", user.ID)))
+				Expect(decodedToken.UserID).To(Equal(user.ID))
 			})
 		})
 	})
@@ -101,11 +98,9 @@ var _ = Describe("Tokens", func() {
 			})
 
 			By("checking that the token belongs to the client", func() {
-				// TODO: replace with implementation that does not call out to UAAC
-				cmd := exec.Command("uaac", "token", "decode", clientToken)
-				output, err := cmd.Output()
+				decodedToken, err := warrantClient.Tokens.Decode(clientToken)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(output).To(ContainSubstring(fmt.Sprintf("client_id: %s", client.ID)))
+				Expect(decodedToken.ClientID).To(Equal(client.ID))
 			})
 		})
 	})

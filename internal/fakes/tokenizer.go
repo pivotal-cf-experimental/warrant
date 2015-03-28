@@ -1,12 +1,14 @@
 package fakes
 
 import (
-	"encoding/json"
+	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pivotal-golang/conceal"
 )
 
 type Tokenizer struct {
+	key   []byte
 	cloak conceal.Cloak
 }
 
@@ -17,37 +19,31 @@ func NewTokenizer(key string) Tokenizer {
 	}
 
 	return Tokenizer{
+		key:   []byte(key),
 		cloak: cloak,
 	}
 }
 
 func (t Tokenizer) Encrypt(token Token) string {
-	tokenData, err := json.Marshal(token)
+	crypt := jwt.New(jwt.SigningMethodHS256)
+	crypt.Claims = token.ToClaims()
+	encrypted, err := crypt.SignedString(t.key)
 	if err != nil {
 		panic(err)
 	}
 
-	encrypted, err := t.cloak.Veil(tokenData)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(encrypted)
+	return encrypted
 }
 
 func (t Tokenizer) Decrypt(encryptedToken string) Token {
-	tokenData, err := t.cloak.Unveil([]byte(encryptedToken))
+	token, err := jwt.Parse(encryptedToken, jwt.Keyfunc(func(*jwt.Token) (interface{}, error) {
+		return t.key, nil
+	}))
 	if err != nil {
 		panic(err)
 	}
 
-	var token Token
-	err = json.Unmarshal(tokenData, &token)
-	if err != nil {
-		panic(err)
-	}
-
-	return token
+	return NewTokenFromClaims(token.Claims)
 }
 
 func (t Tokenizer) Validate(token, expected Token) bool {
@@ -63,10 +59,49 @@ func (t Tokenizer) Validate(token, expected Token) bool {
 }
 
 type Token struct {
-	Scopes    []string
-	Audiences []string
 	UserID    string
 	ClientID  string
+	Scopes    []string
+	Audiences []string
+}
+
+func NewTokenFromClaims(claims map[string]interface{}) Token {
+	token := Token{}
+
+	if userID, ok := claims["user_id"].(string); ok {
+		token.UserID = userID
+	}
+
+	if clientID, ok := claims["client_id"].(string); ok {
+		token.ClientID = clientID
+	}
+
+	if scopes, ok := claims["scope"].(string); ok {
+		token.Scopes = strings.Split(scopes, " ")
+	}
+
+	if audiences, ok := claims["aud"].(string); ok {
+		token.Audiences = strings.Split(audiences, " ")
+	}
+
+	return token
+}
+
+func (t Token) ToClaims() map[string]interface{} {
+	claims := make(map[string]interface{})
+
+	if len(t.UserID) > 0 {
+		claims["user_id"] = t.UserID
+	}
+
+	if len(t.ClientID) > 0 {
+		claims["client_id"] = t.ClientID
+	}
+
+	claims["scope"] = strings.Join(t.Scopes, " ")
+	claims["aud"] = strings.Join(t.Audiences, " ")
+
+	return claims
 }
 
 func (t Token) HasScopes(scopes []string) bool {

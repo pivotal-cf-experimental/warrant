@@ -32,7 +32,7 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	userName := req.Form.Get("username")
 
-	user, ok := s.Users.GetByName(userName)
+	user, ok := s.users.GetByName(userName)
 	if !ok {
 		s.Error(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", userName), "scim_resource_not_found")
 		return
@@ -50,7 +50,12 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	token := s.UserTokenFor(user.ID, []string{}, []string{})
+	token := s.tokenizer.Encrypt(Token{
+		UserID:    user.ID,
+		Scopes:    []string{},
+		Audiences: []string{},
+	})
+
 	redirectURI := requestQuery.Get("redirect_uri")
 
 	query := url.Values{

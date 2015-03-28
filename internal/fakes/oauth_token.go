@@ -20,7 +20,11 @@ func (s *UAAServer) OAuthToken(w http.ResponseWriter, req *http.Request) {
 	}
 	clientID := req.Form.Get("client_id")
 
-	token := s.ClientTokenFor(clientID, []string{}, []string{})
+	token := s.tokenizer.Encrypt(Token{
+		ClientID:  clientID,
+		Scopes:    []string{},
+		Audiences: []string{},
+	})
 
 	response, err := json.Marshal(documents.TokenResponse{
 		AccessToken: token,

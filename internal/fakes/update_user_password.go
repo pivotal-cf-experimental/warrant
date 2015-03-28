@@ -14,7 +14,7 @@ func (s *UAAServer) UpdateUserPassword(w http.ResponseWriter, req *http.Request)
 	matches := regexp.MustCompile(`/Users/(.*)/password$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	user, ok := s.Users.Get(id)
+	user, ok := s.users.Get(id)
 	if !ok {
 		s.Error(w, http.StatusUnauthorized, "Not authorized", "access_denied")
 		return
@@ -32,7 +32,7 @@ func (s *UAAServer) UpdateUserPassword(w http.ResponseWriter, req *http.Request)
 	}
 
 	user.Password = document.Password
-	s.Users.Update(user)
+	s.users.Update(user)
 }
 
 func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
@@ -40,7 +40,7 @@ func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword,
 		return true
 	}
 
-	token := s.Tokenizer.Decrypt(tokenHeader)
+	token := s.tokenizer.Decrypt(tokenHeader)
 	if token.UserID == userID && existingPassword == givenPassword {
 		return true
 	}

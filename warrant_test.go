@@ -62,6 +62,10 @@ var _ = Describe("Client", func() {
 		Expect(client.Clients).To(BeAssignableToTypeOf(warrant.ClientsService{}))
 	})
 
+	It("has a tokens service", func() {
+		Expect(client.Tokens).To(BeAssignableToTypeOf(warrant.TokensService{}))
+	})
+
 	Describe("makeRequest", func() {
 		It("can make requests", func() {
 			jsonBody := map[string]interface{}{

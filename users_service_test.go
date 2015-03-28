@@ -10,14 +10,18 @@ import (
 )
 
 var _ = Describe("UsersService", func() {
-	var service warrant.UsersService
-	var token string
+	var (
+		service warrant.UsersService
+		token   string
+		config  warrant.Config
+	)
 
 	BeforeEach(func() {
-		service = warrant.NewUsersService(warrant.Config{
+		config = warrant.Config{
 			Host:          fakeUAAServer.URL(),
 			SkipVerifySSL: true,
-		})
+		}
+		service = warrant.NewUsersService(config)
 		token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write", "scim.read", "password.write"}, []string{"scim", "password"})
 	})
 
@@ -270,8 +274,9 @@ var _ = Describe("UsersService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).NotTo(BeEmpty())
 
-			// TODO: don't use fake to decode the token
-			decodedToken := fakeUAAServer.Tokenizer.Decrypt(token)
+			tokensService := warrant.NewTokensService(config)
+			decodedToken, err := tokensService.Decode(token)
+			Expect(err).NotTo(HaveOccurred())
 			Expect(decodedToken.UserID).To(Equal(user.ID))
 		})
 
