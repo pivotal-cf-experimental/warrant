@@ -143,6 +143,7 @@ func (w Warrant) makeRequest(requestArgs requestArguments) (response, error) {
 	if err != nil {
 		return response{}, newRequestHTTPError(err)
 	}
+	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
