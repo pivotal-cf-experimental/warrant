@@ -31,7 +31,7 @@ func NewUsersService(config Config) UsersService {
 }
 
 func (us UsersService) Create(username, email, token string) (User, error) {
-	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          "/Users",
 		Authorization: network.NewTokenAuthorization(token),
@@ -57,7 +57,7 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 }
 
 func (us UsersService) Get(id, token string) (User, error) {
-	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:                "GET",
 		Path:                  fmt.Sprintf("/Users/%s", id),
 		Authorization:         network.NewTokenAuthorization(token),
@@ -77,7 +77,7 @@ func (us UsersService) Get(id, token string) (User, error) {
 }
 
 func (us UsersService) Delete(id, token string) error {
-	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:                "DELETE",
 		Path:                  fmt.Sprintf("/Users/%s", id),
 		Authorization:         network.NewTokenAuthorization(token),
@@ -91,7 +91,7 @@ func (us UsersService) Delete(id, token string) error {
 }
 
 func (us UsersService) Update(user User, token string) (User, error) {
-	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s", user.ID),
 		Authorization: network.NewTokenAuthorization(token),
@@ -113,7 +113,7 @@ func (us UsersService) Update(user User, token string) (User, error) {
 }
 
 func (us UsersService) SetPassword(id, password, token string) error {
-	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s/password", id),
 		Authorization: network.NewTokenAuthorization(token),
@@ -130,7 +130,7 @@ func (us UsersService) SetPassword(id, password, token string) error {
 }
 
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
-	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s/password", id),
 		Authorization: network.NewTokenAuthorization(token),
@@ -158,7 +158,7 @@ func (us UsersService) GetToken(username, password, client, redirectURI string) 
 		Path:     "/oauth/authorize",
 		RawQuery: query.Encode(),
 	}
-	req := network.RequestArguments{
+	req := network.Request{
 		Method: "POST",
 		Path:   requestPath.String(),
 		Body: network.NewFormRequestBody(url.Values{

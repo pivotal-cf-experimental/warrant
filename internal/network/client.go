@@ -1,48 +1,19 @@
 package network
 
 import (
-	"bytes"
-	"crypto/tls"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"net/url"
-	"os"
-	"strings"
-	"time"
 )
 
-var _transports map[bool]http.RoundTripper
-
-func init() {
-	_transports = map[bool]http.RoundTripper{
-		true:  buildTransport(true),
-		false: buildTransport(false),
+func NewClient(config Config) Client {
+	return Client{
+		config: config,
 	}
 }
 
-func GetClient(config Config) *http.Client {
-	return &http.Client{
-		Transport: _transports[config.SkipVerifySSL],
-	}
-}
-
-func buildTransport(skipVerifySSL bool) http.RoundTripper {
-	return &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: skipVerifySSL,
-		},
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout: 10 * time.Second,
-	}
+type Client struct {
+	config Config
 }
 
 type Config struct {
@@ -50,7 +21,7 @@ type Config struct {
 	SkipVerifySSL bool
 }
 
-type RequestArguments struct {
+type Request struct {
 	Method                string
 	Path                  string
 	Authorization         authorization
@@ -60,108 +31,35 @@ type RequestArguments struct {
 	DoNotFollowRedirects  bool
 }
 
-type requestBody interface {
-	Encode() (requestBody io.Reader, contentType string, err error)
-}
-
-type jsonRequestBody struct {
-	body interface{}
-}
-
-func NewJSONRequestBody(body interface{}) jsonRequestBody {
-	return jsonRequestBody{
-		body: body,
-	}
-}
-
-func (j jsonRequestBody) Encode() (requestBody io.Reader, contentType string, err error) {
-	bodyJSON, err := json.Marshal(j.body)
-	if err != nil {
-		return nil, "", err
-	}
-	return bytes.NewReader(bodyJSON), "application/json", nil
-}
-
-func NewFormRequestBody(values url.Values) formRequestBody {
-	return formRequestBody(values)
-}
-
-type formRequestBody url.Values
-
-func (f formRequestBody) Encode() (requestBody io.Reader, contentType string, err error) {
-	return strings.NewReader(url.Values(f).Encode()), "application/x-www-form-urlencoded", nil
-}
-
-type authorization interface {
-	Authorization() string
-}
-
-func NewTokenAuthorization(token string) tokenAuthorization {
-	return tokenAuthorization(token)
-}
-
-type tokenAuthorization string
-
-func (a tokenAuthorization) Authorization() string {
-	return fmt.Sprintf("Bearer %s", a)
-}
-
-func NewBasicAuthorization(username, password string) basicAuthorization {
-	return basicAuthorization{
-		Username: username,
-		Password: password,
-	}
-}
-
-type basicAuthorization struct {
-	Username string
-	Password string
-}
-
-func (b basicAuthorization) Authorization() string {
-	auth := b.Username + ":" + b.Password
-	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(auth)))
-}
-
-type response struct {
+type Response struct {
 	Code    int
 	Body    []byte
 	Headers http.Header
 }
 
-type Client struct {
-	config Config
-}
-
-func NewClient(config Config) Client {
-	return Client{
-		config: config,
-	}
-}
-
-func (c Client) MakeRequest(args RequestArguments) (response, error) {
-	if args.AcceptableStatusCodes == nil {
+func (c Client) MakeRequest(req Request) (Response, error) {
+	if req.AcceptableStatusCodes == nil {
 		panic("acceptable status codes for this request were not set")
 	}
 
 	var bodyReader io.Reader
 	var contentType string
-	if args.Body != nil {
+	if req.Body != nil {
 		var err error
-		bodyReader, contentType, err = args.Body.Encode()
+		bodyReader, contentType, err = req.Body.Encode()
 		if err != nil {
-			return response{}, newRequestBodyMarshalError(err)
+			return Response{}, newRequestBodyMarshalError(err)
 		}
 	}
 
-	requestURL := c.config.Host + args.Path
-	request, err := http.NewRequest(args.Method, requestURL, bodyReader)
+	requestURL := c.config.Host + req.Path
+	request, err := http.NewRequest(req.Method, requestURL, bodyReader)
 	if err != nil {
-		return response{}, newRequestConfigurationError(err)
+		return Response{}, newRequestConfigurationError(err)
 	}
 
-	if args.Authorization != nil {
-		request.Header.Set("Authorization", args.Authorization.Authorization())
+	if req.Authorization != nil {
+		request.Header.Set("Authorization", req.Authorization.Authorization())
 	}
 
 	request.Header.Set("Accept", "application/json")
@@ -169,33 +67,31 @@ func (c Client) MakeRequest(args RequestArguments) (response, error) {
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
 	}
-	if args.IfMatch != "" {
-		request.Header.Set("If-Match", args.IfMatch)
+	if req.IfMatch != "" {
+		request.Header.Set("If-Match", req.IfMatch)
 	}
 
 	c.printRequest(request)
 
 	var resp *http.Response
-	if args.DoNotFollowRedirects {
-		resp, err = GetClient(Config{
-			SkipVerifySSL: c.config.SkipVerifySSL,
-		}).Transport.RoundTrip(request)
+	transport := buildTransport(c.config.SkipVerifySSL)
+	if req.DoNotFollowRedirects {
+		resp, err = transport.RoundTrip(request)
 	} else {
-		resp, err = GetClient(Config{
-			SkipVerifySSL: c.config.SkipVerifySSL,
-		}).Do(request)
+		client := &http.Client{Transport: transport}
+		resp, err = client.Do(request)
 	}
 	if err != nil {
-		return response{}, newRequestHTTPError(err)
+		return Response{}, newRequestHTTPError(err)
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return response{}, newResponseReadError(err)
+		return Response{}, newResponseReadError(err)
 	}
 
-	parsedResponse := response{
+	parsedResponse := Response{
 		Code:    resp.StatusCode,
 		Body:    responseBody,
 		Headers: resp.Header,
@@ -203,41 +99,18 @@ func (c Client) MakeRequest(args RequestArguments) (response, error) {
 	c.printResponse(parsedResponse)
 
 	if resp.StatusCode == http.StatusNotFound {
-		return response{}, newNotFoundError(responseBody)
+		return Response{}, newNotFoundError(responseBody)
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return response{}, newUnauthorizedError(responseBody)
+		return Response{}, newUnauthorizedError(responseBody)
 	}
 
-	for _, acceptableCode := range args.AcceptableStatusCodes {
+	for _, acceptableCode := range req.AcceptableStatusCodes {
 		if resp.StatusCode == acceptableCode {
 			return parsedResponse, nil
 		}
 	}
 
-	return response{}, newUnexpectedStatusError(resp.StatusCode, responseBody)
-}
-
-func (c Client) printRequest(request *http.Request) {
-	if os.Getenv("TRACE") != "" {
-		bodyCopy := bytes.NewBuffer([]byte{})
-		if request.Body != nil {
-			body := bytes.NewBuffer([]byte{})
-			_, err := io.Copy(io.MultiWriter(body, bodyCopy), request.Body)
-			if err != nil {
-				panic(err)
-			}
-
-			request.Body = ioutil.NopCloser(body)
-		}
-
-		fmt.Printf("REQUEST: %s %s %s %v\n", request.Method, request.URL, bodyCopy.String(), request.Header)
-	}
-}
-
-func (c Client) printResponse(resp response) {
-	if os.Getenv("TRACE") != "" {
-		fmt.Printf("RESPONSE: %d %s %+v\n", resp.Code, resp.Body, resp.Headers)
-	}
+	return Response{}, newUnexpectedStatusError(resp.StatusCode, responseBody)
 }

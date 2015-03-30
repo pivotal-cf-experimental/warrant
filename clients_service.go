@@ -31,7 +31,7 @@ func NewClientsService(config Config) ClientsService {
 }
 
 func (cs ClientsService) Create(client Client, secret, token string) error {
-	_, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
+	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          "/oauth/clients",
 		Authorization: network.NewTokenAuthorization(token),
@@ -46,7 +46,7 @@ func (cs ClientsService) Create(client Client, secret, token string) error {
 }
 
 func (cs ClientsService) Get(id, token string) (Client, error) {
-	resp, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
+	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:                "GET",
 		Path:                  fmt.Sprintf("/oauth/clients/%s", id),
 		Authorization:         network.NewTokenAuthorization(token),
@@ -66,7 +66,7 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 }
 
 func (cs ClientsService) GetToken(id, secret string) (string, error) {
-	resp, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
+	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          "/oauth/token",
 		Authorization: network.NewBasicAuthorization(id, secret),

@@ -5,46 +5,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"reflect"
-	"time"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-var _ = Describe("using a global HTTP client", func() {
-	It("retrieves the exact same client reference for a given value of config.SkipVerifySSL", func() {
-		client1 := network.GetClient(network.Config{SkipVerifySSL: true})
-		client2 := network.GetClient(network.Config{SkipVerifySSL: true})
-
-		transportPointer1 := reflect.ValueOf(client1.Transport).Pointer()
-		transportPointer2 := reflect.ValueOf(client2.Transport).Pointer()
-		Expect(transportPointer1).To(Equal(transportPointer2))
-	})
-
-	It("retrieves difference client references for different values of config.SkipVerifySSL", func() {
-		client1 := network.GetClient(network.Config{SkipVerifySSL: true})
-		client2 := network.GetClient(network.Config{SkipVerifySSL: false})
-
-		transportPointer1 := reflect.ValueOf(client1.Transport).Pointer()
-		transportPointer2 := reflect.ValueOf(client2.Transport).Pointer()
-		Expect(transportPointer1).NotTo(Equal(transportPointer2))
-	})
-
-	It("uses the configuration to configure the HTTP client", func() {
-		config := network.Config{
-			SkipVerifySSL: true,
-		}
-		transport := network.GetClient(config).Transport.(*http.Transport)
-
-		Expect(transport.TLSClientConfig.InsecureSkipVerify).To(BeTrue())
-		Expect(reflect.ValueOf(transport.Proxy).Pointer()).To(Equal(reflect.ValueOf(http.ProxyFromEnvironment).Pointer()))
-		Expect(transport.TLSHandshakeTimeout).To(Equal(10 * time.Second))
-	})
-})
 
 var unsupportedJSONType = func() {}
 
@@ -93,7 +59,7 @@ var _ = Describe("Client", func() {
 				"hello": "goodbye",
 			}
 
-			resp, err := client.MakeRequest(network.RequestArguments{
+			resp, err := client.MakeRequest(network.Request{
 				Method:        "GET",
 				Path:          "/path",
 				Authorization: network.NewTokenAuthorization(token),
@@ -116,7 +82,7 @@ var _ = Describe("Client", func() {
 		})
 
 		Context("Following redirects", func() {
-			var requestArgs network.RequestArguments
+			var requestArgs network.Request
 
 			BeforeEach(func() {
 				redirectingServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -134,7 +100,7 @@ var _ = Describe("Client", func() {
 					SkipVerifySSL: true,
 				})
 
-				requestArgs = network.RequestArguments{
+				requestArgs = network.Request{
 					Method:                "GET",
 					Path:                  "/redirect",
 					Authorization:         network.NewTokenAuthorization(token),
@@ -166,7 +132,7 @@ var _ = Describe("Client", func() {
 		Context("Headers", func() {
 			Context("authorization", func() {
 				It("does not include Authorization header when there is no authorization", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method: "GET",
 						Path:   "/path",
 						Body:   network.NewJSONRequestBody(map[string]string{"hello": "world"}),
@@ -188,7 +154,7 @@ var _ = Describe("Client", func() {
 				})
 
 				It("includes a bearer Authorization header when there is token authorization", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewTokenAuthorization("TOKEN"),
@@ -212,7 +178,7 @@ var _ = Describe("Client", func() {
 				})
 
 				It("includes a basic Authorization header when there is basic authorization", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewBasicAuthorization("username", "password"),
@@ -238,7 +204,7 @@ var _ = Describe("Client", func() {
 
 			Context("when there is a JSON body", func() {
 				It("includes the Content-Type header in the request", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewTokenAuthorization(token),
@@ -264,7 +230,7 @@ var _ = Describe("Client", func() {
 
 			Context("when there is no JSON body", func() {
 				It("does not include the Content-Type header in the request", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewTokenAuthorization(token),
@@ -288,7 +254,7 @@ var _ = Describe("Client", func() {
 
 			Context("when the If-Match argument is assigned", func() {
 				It("includes the header in the request", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewTokenAuthorization(token),
@@ -314,7 +280,7 @@ var _ = Describe("Client", func() {
 
 			Context("when the If-Match argument is not assigned", func() {
 				It("does not include the header in the request", func() {
-					requestArgs := network.RequestArguments{
+					requestArgs := network.Request{
 						Method:        "GET",
 						Path:          "/path",
 						Authorization: network.NewTokenAuthorization(token),
@@ -339,7 +305,7 @@ var _ = Describe("Client", func() {
 
 		Context("when errors occur", func() {
 			It("returns a RequestBodyMarshalError when the request body cannot be marshalled", func() {
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -356,7 +322,7 @@ var _ = Describe("Client", func() {
 					Host: "://example.com",
 				})
 
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -373,7 +339,7 @@ var _ = Describe("Client", func() {
 					Host: "banana://example.com",
 				})
 
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -395,7 +361,7 @@ var _ = Describe("Client", func() {
 					Host: unintelligibleServer.URL,
 				})
 
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -410,7 +376,7 @@ var _ = Describe("Client", func() {
 			})
 
 			It("returns an UnexpectedStatusError when the response status is not an expected value", func() {
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -431,7 +397,7 @@ var _ = Describe("Client", func() {
 					Host: missingServer.URL,
 				})
 
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -454,7 +420,7 @@ var _ = Describe("Client", func() {
 					Host: lockedServer.URL,
 				})
 
-				requestArgs := network.RequestArguments{
+				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
 					Authorization: network.NewTokenAuthorization(token),
@@ -467,65 +433,6 @@ var _ = Describe("Client", func() {
 
 				lockedServer.Close()
 			})
-		})
-	})
-})
-
-var _ = Describe("RequestBodyEncoder", func() {
-	Describe("JSONRequestBody", func() {
-		Describe("Encode", func() {
-			It("returns a JSON encoded representation of the given object with proper content type", func() {
-				var object struct {
-					Hello string `json:"hello"`
-				}
-				object.Hello = "goodbye"
-
-				body, contentType, err := network.NewJSONRequestBody(object).Encode()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(ioutil.ReadAll(body)).To(MatchJSON(`{
-					"hello": "goodbye"
-				}`))
-				Expect(contentType).To(Equal("application/json"))
-			})
-
-			It("returns an error when the JSON cannot be encoded", func() {
-				_, _, err := network.NewJSONRequestBody(func() {}).Encode()
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
-	Describe("FormRequestBody", func() {
-		Describe("Encode", func() {
-			It("returns a form URL encoded representation of the given object with proper content type", func() {
-				values := url.Values{
-					"hello": []string{"goodbye"},
-					"black": []string{"white"},
-				}
-
-				body, contentType, err := network.NewFormRequestBody(values).Encode()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(ioutil.ReadAll(body)).To(BeEquivalentTo("black=white&hello=goodbye"))
-				Expect(contentType).To(Equal("application/x-www-form-urlencoded"))
-			})
-		})
-	})
-})
-
-var _ = Describe("RequestAuthorization", func() {
-	Describe("TokenAuthorization", func() {
-		It("returns a bearer token given a token value", func() {
-			auth := network.NewTokenAuthorization("TOKEN")
-
-			Expect(auth.Authorization()).To(Equal("Bearer TOKEN"))
-		})
-	})
-
-	Describe("BasicAuthorization", func() {
-		It("returns a basic auth header given a username and password", func() {
-			auth := network.NewBasicAuthorization("username", "password")
-
-			Expect(auth.Authorization()).To(Equal("Basic dXNlcm5hbWU6cGFzc3dvcmQ="))
 		})
 	})
 })
