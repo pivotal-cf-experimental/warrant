@@ -8,7 +8,13 @@ import (
 	"strconv"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
+	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
+
+// TODO: Score password strength
+// TODO: Verify a user
+// TODO: Query for user info
+// TODO: Convert user ids to names
 
 const Schema = "urn:scim:schemas:core:1.0"
 
@@ -25,20 +31,20 @@ func NewUsersService(config Config) UsersService {
 }
 
 func (us UsersService) Create(username, email, token string) (User, error) {
-	resp, err := New(us.config).makeRequest(requestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:        "POST",
 		Path:          "/Users",
-		Authorization: tokenAuthorization(token),
-		Body: jsonRequestBody{documents.CreateUserRequest{
+		Authorization: network.NewTokenAuthorization(token),
+		Body: network.NewJSONRequestBody(documents.CreateUserRequest{
 			UserName: username,
 			Emails: []documents.Email{
 				{Value: email},
 			},
-		}},
+		}),
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
-		return User{}, err
+		return User{}, translateError(err)
 	}
 
 	var response documents.UserResponse
@@ -51,14 +57,14 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 }
 
 func (us UsersService) Get(id, token string) (User, error) {
-	resp, err := New(us.config).makeRequest(requestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:                "GET",
 		Path:                  fmt.Sprintf("/Users/%s", id),
-		Authorization:         tokenAuthorization(token),
+		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return User{}, err
+		return User{}, translateError(err)
 	}
 
 	var response documents.UserResponse
@@ -71,30 +77,30 @@ func (us UsersService) Get(id, token string) (User, error) {
 }
 
 func (us UsersService) Delete(id, token string) error {
-	_, err := New(us.config).makeRequest(requestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:                "DELETE",
 		Path:                  fmt.Sprintf("/Users/%s", id),
-		Authorization:         tokenAuthorization(token),
+		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return err
+		return translateError(err)
 	}
 
 	return nil
 }
 
 func (us UsersService) Update(user User, token string) (User, error) {
-	resp, err := New(us.config).makeRequest(requestArguments{
+	resp, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s", user.ID),
-		Authorization: tokenAuthorization(token),
+		Authorization: network.NewTokenAuthorization(token),
 		IfMatch:       strconv.Itoa(user.Version),
-		Body:          jsonRequestBody{newUpdateUserDocumentFromUser(user)},
+		Body:          network.NewJSONRequestBody(newUpdateUserDocumentFromUser(user)),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return User{}, err
+		return User{}, translateError(err)
 	}
 
 	var response documents.UserResponse
@@ -107,35 +113,35 @@ func (us UsersService) Update(user User, token string) (User, error) {
 }
 
 func (us UsersService) SetPassword(id, password, token string) error {
-	_, err := New(us.config).makeRequest(requestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s/password", id),
-		Authorization: tokenAuthorization(token),
-		Body: jsonRequestBody{documents.SetPasswordRequest{
+		Authorization: network.NewTokenAuthorization(token),
+		Body: network.NewJSONRequestBody(documents.SetPasswordRequest{
 			Password: password,
-		}},
+		}),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return err
+		return translateError(err)
 	}
 
 	return nil
 }
 
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
-	_, err := New(us.config).makeRequest(requestArguments{
+	_, err := newNetworkClient(us.config).MakeRequest(network.RequestArguments{
 		Method:        "PUT",
 		Path:          fmt.Sprintf("/Users/%s/password", id),
-		Authorization: tokenAuthorization(token),
-		Body: jsonRequestBody{documents.ChangePasswordRequest{
+		Authorization: network.NewTokenAuthorization(token),
+		Body: network.NewJSONRequestBody(documents.ChangePasswordRequest{
 			OldPassword: oldPassword,
 			Password:    password,
-		}},
+		}),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return err
+		return translateError(err)
 	}
 
 	return nil
@@ -152,21 +158,21 @@ func (us UsersService) GetToken(username, password, client, redirectURI string) 
 		Path:     "/oauth/authorize",
 		RawQuery: query.Encode(),
 	}
-	req := requestArguments{
+	req := network.RequestArguments{
 		Method: "POST",
 		Path:   requestPath.String(),
-		Body: formRequestBody{
+		Body: network.NewFormRequestBody(url.Values{
 			"username": []string{username},
 			"password": []string{password},
 			"source":   []string{"credentials"},
-		},
+		}),
 		AcceptableStatusCodes: []int{http.StatusFound},
 		DoNotFollowRedirects:  true,
 	}
 
-	resp, err := New(us.config).makeRequest(req)
+	resp, err := newNetworkClient(us.config).MakeRequest(req)
 	if err != nil {
-		return "", err
+		return "", translateError(err)
 	}
 
 	locationURL, err := url.Parse(resp.Headers.Get("Location"))

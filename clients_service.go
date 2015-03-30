@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
+	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
 type Client struct {
@@ -29,29 +31,29 @@ func NewClientsService(config Config) ClientsService {
 }
 
 func (cs ClientsService) Create(client Client, secret, token string) error {
-	_, err := New(cs.config).makeRequest(requestArguments{
+	_, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
 		Method:        "POST",
 		Path:          "/oauth/clients",
-		Authorization: tokenAuthorization(token),
-		Body:          jsonRequestBody{client.ToDocument(secret)},
+		Authorization: network.NewTokenAuthorization(token),
+		Body:          network.NewJSONRequestBody(client.ToDocument(secret)),
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
-		panic(err)
+		panic(err) // TODO: should not panic
 	}
 
 	return nil
 }
 
 func (cs ClientsService) Get(id, token string) (Client, error) {
-	resp, err := New(cs.config).makeRequest(requestArguments{
+	resp, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
 		Method:                "GET",
 		Path:                  fmt.Sprintf("/oauth/clients/%s", id),
-		Authorization:         tokenAuthorization(token),
+		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return Client{}, err
+		return Client{}, translateError(err)
 	}
 
 	var document documents.ClientResponse
@@ -64,21 +66,18 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 }
 
 func (cs ClientsService) GetToken(id, secret string) (string, error) {
-	resp, err := New(cs.config).makeRequest(requestArguments{
-		Method: "POST",
-		Path:   "/oauth/token",
-		Authorization: basicAuthorization{
-			Username: id,
-			Password: secret,
-		},
-		Body: formRequestBody{
+	resp, err := newNetworkClient(cs.config).MakeRequest(network.RequestArguments{
+		Method:        "POST",
+		Path:          "/oauth/token",
+		Authorization: network.NewBasicAuthorization(id, secret),
+		Body: network.NewFormRequestBody(url.Values{
 			"client_id":  []string{id},
 			"grant_type": []string{"client_credentials"},
-		},
+		}),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
-		return "", err
+		return "", translateError(err)
 	}
 
 	var response documents.TokenResponse
