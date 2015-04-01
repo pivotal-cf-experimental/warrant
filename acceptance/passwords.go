@@ -1,9 +1,7 @@
 package acceptance
 
 import (
-	"fmt"
 	"os/exec"
-	"regexp"
 
 	"github.com/pivotal-cf-experimental/warrant"
 
@@ -19,6 +17,7 @@ var _ = Describe("Passwords", func() {
 			Host:          UAAHost,
 			SkipVerifySSL: true,
 		})
+
 	})
 
 	AfterEach(func() {
@@ -47,25 +46,13 @@ var _ = Describe("Passwords", func() {
 		})
 
 		By("retrieving the user token using the new password", func() {
-			// TODO: replace with implementation that does not call out to UAAC
-			cmd := exec.Command("uaac", "token", "get", user.UserName, "password")
-			output, err := cmd.Output()
+			var err error
+			userToken, err = client.Users.GetToken(user.UserName, "password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("Successfully fetched token via implicit (with posted credentials) grant."))
 
-			cmd = exec.Command("uaac", "token", "decode")
-			output, err = cmd.Output()
+			decodedToken, err := client.Tokens.Decode(userToken)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring(fmt.Sprintf("user_id: %s", user.ID)))
-
-			cmd = exec.Command("uaac", "context")
-			output, err = cmd.Output()
-			Expect(err).NotTo(HaveOccurred())
-			matches := regexp.MustCompile(`access_token: (.*)\n`).FindStringSubmatch(string(output))
-			Expect(matches).To(HaveLen(2))
-
-			userToken = matches[1]
-			Expect(userToken).NotTo(BeEmpty())
+			Expect(decodedToken.UserID).To(Equal(user.ID))
 		})
 
 		By("changing a user's own password", func() {
@@ -74,25 +61,13 @@ var _ = Describe("Passwords", func() {
 		})
 
 		By("retrieving the user token using the new password", func() {
-			// TODO: replace with implementation that does not call out to UAAC
-			cmd := exec.Command("uaac", "token", "get", user.UserName, "new-password")
-			output, err := cmd.Output()
+			var err error
+			userToken, err = client.Users.GetToken(user.UserName, "new-password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("Successfully fetched token via implicit (with posted credentials) grant."))
 
-			cmd = exec.Command("uaac", "token", "decode")
-			output, err = cmd.Output()
+			decodedToken, err := client.Tokens.Decode(userToken)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring(fmt.Sprintf("user_id: %s", user.ID)))
-
-			cmd = exec.Command("uaac", "context")
-			output, err = cmd.Output()
-			Expect(err).NotTo(HaveOccurred())
-			matches := regexp.MustCompile(`access_token: (.*)\n`).FindStringSubmatch(string(output))
-			Expect(matches).To(HaveLen(2))
-
-			userToken = matches[1]
-			Expect(userToken).NotTo(BeEmpty())
+			Expect(decodedToken.UserID).To(Equal(user.ID))
 		})
 
 		By("deleting the user", func() {
