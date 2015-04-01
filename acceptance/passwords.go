@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"regexp"
 
@@ -13,23 +12,18 @@ import (
 )
 
 var _ = Describe("Passwords", func() {
-	var (
-		client warrant.Warrant
-		token  string
-	)
+	var client warrant.Warrant
 
 	BeforeEach(func() {
-		token = os.Getenv("UAA_TOKEN")
-
 		client = warrant.New(warrant.Config{
-			Host:          os.Getenv("UAA_HOST"),
+			Host:          UAAHost,
 			SkipVerifySSL: true,
 		})
 	})
 
 	AfterEach(func() {
 		// TODO: replace with implementation that does not call out to UAAC
-		cmd := exec.Command("uaac", "token", "client", "get", os.Getenv("UAA_ADMIN_CLIENT"), "-s", os.Getenv("UAA_ADMIN_SECRET"))
+		cmd := exec.Command("uaac", "token", "client", "get", UAAAdminClient, "-s", UAAAdminSecret)
 		output, err := cmd.Output()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(output).To(ContainSubstring("Successfully fetched token via client credentials grant."))
@@ -43,12 +37,12 @@ var _ = Describe("Passwords", func() {
 
 		By("creating a new user", func() {
 			var err error
-			user, err = client.Users.Create("user-name", "user@example.com", token)
+			user, err = client.Users.Create("user-name", "user@example.com", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		By("setting the user password using a valid client", func() {
-			err := client.Users.SetPassword(user.ID, "password", token)
+			err := client.Users.SetPassword(user.ID, "password", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -102,10 +96,10 @@ var _ = Describe("Passwords", func() {
 		})
 
 		By("deleting the user", func() {
-			err := client.Users.Delete(user.ID, token)
+			err := client.Users.Delete(user.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = client.Users.Get(user.ID, token)
+			_, err = client.Users.Get(user.ID, UAAToken)
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 	})

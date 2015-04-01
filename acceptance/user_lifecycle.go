@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant"
@@ -11,16 +10,11 @@ import (
 )
 
 var _ = Describe("User Lifecycle", func() {
-	var (
-		client warrant.Warrant
-		token  string
-	)
+	var client warrant.Warrant
 
 	BeforeEach(func() {
-		token = os.Getenv("UAA_TOKEN")
-
 		client = warrant.New(warrant.Config{
-			Host:          os.Getenv("UAA_HOST"),
+			Host:          UAAHost,
 			SkipVerifySSL: true,
 		})
 	})
@@ -30,7 +24,7 @@ var _ = Describe("User Lifecycle", func() {
 
 		By("creating a new user", func() {
 			var err error
-			user, err = client.Users.Create("user-name", "user@example.com", token)
+			user, err = client.Users.Create("user-name", "user@example.com", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(user.UserName).To(Equal("user-name"))
 			Expect(user.Emails).To(ConsistOf([]string{"user@example.com"}))
@@ -45,44 +39,44 @@ var _ = Describe("User Lifecycle", func() {
 		})
 
 		By("finding the user", func() {
-			fetchedUser, err := client.Users.Get(user.ID, token)
+			fetchedUser, err := client.Users.Get(user.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedUser).To(Equal(user))
 		})
 
 		By("updating the user", func() {
-			updatedUser, err := client.Users.Update(user, token)
+			updatedUser, err := client.Users.Update(user, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 
-			fetchedUser, err := client.Users.Get(user.ID, token)
+			fetchedUser, err := client.Users.Get(user.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedUser).To(Equal(updatedUser))
 		})
 
 		By("deleting the user", func() {
-			err := client.Users.Delete(user.ID, token)
+			err := client.Users.Delete(user.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = client.Users.Get(user.ID, token)
+			_, err = client.Users.Get(user.ID, UAAToken)
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 	})
 
 	It("does not allow a user to be created without an email address", func() {
-		_, err := client.Users.Create("invalid-email-user", "", token)
+		_, err := client.Users.Create("invalid-email-user", "", UAAToken)
 		Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
 	})
 
 	It("does not allow non-existant users to be updated", func() {
-		user, err := client.Users.Create("user-name", "user@example.com", token)
+		user, err := client.Users.Create("user-name", "user@example.com", UAAToken)
 		Expect(err).NotTo(HaveOccurred())
 
 		originalUserID := user.ID
 		user.ID = "non-existant-user-guid"
-		_, err = client.Users.Update(user, token)
+		_, err = client.Users.Update(user, UAAToken)
 		Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 
-		err = client.Users.Delete(originalUserID, token)
+		err = client.Users.Delete(originalUserID, UAAToken)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

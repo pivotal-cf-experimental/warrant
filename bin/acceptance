@@ -16,9 +16,4 @@ if [[ -z "$UAA_ADMIN_SECRET" ]]; then
   exit 1
 fi
 
-uaac target $UAA_HOST
-uaac token client get $UAA_ADMIN_CLIENT -s $UAA_ADMIN_SECRET
-
-export UAA_TOKEN=`uaac context | grep access_token | awk '{ print $2 }'`
-
 ginkgo -r -slowSpecThreshold=10 -succinct=true $DIR/acceptance

@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os"
 	"os/exec"
 	"time"
 
@@ -12,16 +11,11 @@ import (
 )
 
 var _ = Describe("Tokens", func() {
-	var (
-		warrantClient warrant.Warrant
-		token         string
-	)
+	var warrantClient warrant.Warrant
 
 	BeforeEach(func() {
-		token = os.Getenv("UAA_TOKEN")
-
 		warrantClient = warrant.New(warrant.Config{
-			Host:          os.Getenv("UAA_HOST"),
+			Host:          UAAHost,
 			SkipVerifySSL: true,
 		})
 	})
@@ -33,19 +27,19 @@ var _ = Describe("Tokens", func() {
 		)
 
 		AfterEach(func() {
-			err := warrantClient.Users.Delete(user.ID, token)
+			err := warrantClient.Users.Delete(user.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("allows a token to be retrieved", func() {
 			By("creating a new user", func() {
 				var err error
-				user, err = warrantClient.Users.Create("username", "user@example.com", token)
+				user, err = warrantClient.Users.Create("username", "user@example.com", UAAToken)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			By("setting the user password", func() {
-				err := warrantClient.Users.SetPassword(user.ID, "password", token)
+				err := warrantClient.Users.SetPassword(user.ID, "password", UAAToken)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -87,7 +81,8 @@ var _ = Describe("Tokens", func() {
 					AuthorizedGrantTypes: []string{"client_credentials"},
 					AccessTokenValidity:  24 * time.Hour,
 				}
-				err := warrantClient.Clients.Create(client, "client-secret", token)
+
+				err := warrantClient.Clients.Create(client, "client-secret", UAAToken)
 				Expect(err).NotTo(HaveOccurred())
 			})
 

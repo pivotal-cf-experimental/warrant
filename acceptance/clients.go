@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os"
 	"os/exec"
 	"time"
 
@@ -14,12 +13,10 @@ import (
 var _ = Describe("Client Lifecycle", func() {
 	var (
 		warrantClient warrant.Warrant
-		token         string
 		client        warrant.Client
 	)
 
 	BeforeEach(func() {
-		token = os.Getenv("UAA_TOKEN")
 		client = warrant.Client{
 			ID:                   "warrant-client",
 			Scope:                []string{"openid"},
@@ -30,7 +27,7 @@ var _ = Describe("Client Lifecycle", func() {
 		}
 
 		warrantClient = warrant.New(warrant.Config{
-			Host:          os.Getenv("UAA_HOST"),
+			Host:          UAAHost,
 			SkipVerifySSL: true,
 		})
 	})
@@ -45,12 +42,12 @@ var _ = Describe("Client Lifecycle", func() {
 
 	It("creates, and retrieves a client", func() {
 		By("creating a client", func() {
-			err := warrantClient.Clients.Create(client, "secret", token)
+			err := warrantClient.Clients.Create(client, "secret", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		By("find the client", func() {
-			fetchedClient, err := warrantClient.Clients.Get(client.ID, token)
+			fetchedClient, err := warrantClient.Clients.Get(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedClient).To(Equal(client))
 		})
