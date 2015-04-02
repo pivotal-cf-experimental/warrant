@@ -1,8 +1,6 @@
 package acceptance
 
 import (
-	"os/exec"
-
 	"github.com/pivotal-cf-experimental/warrant"
 
 	. "github.com/onsi/ginkgo"
@@ -18,14 +16,6 @@ var _ = Describe("Passwords", func() {
 			SkipVerifySSL: true,
 		})
 
-	})
-
-	AfterEach(func() {
-		// TODO: replace with implementation that does not call out to UAAC
-		cmd := exec.Command("uaac", "token", "client", "get", UAAAdminClient, "-s", UAAAdminSecret)
-		output, err := cmd.Output()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(output).To(ContainSubstring("Successfully fetched token via client credentials grant."))
 	})
 
 	It("allows a user password to be set/updated", func() {
