@@ -10,7 +10,6 @@ import (
 )
 
 // TODO: do not use os.Getenv
-
 func (c Client) printRequest(request *http.Request) {
 	if os.Getenv("TRACE") != "" {
 		bodyCopy := bytes.NewBuffer([]byte{})

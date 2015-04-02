@@ -8,17 +8,22 @@ import (
 )
 
 type User struct {
-	ID        string
-	UserName  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Version   int
-	Emails    []string
-	Groups    []Group
-	Active    bool
-	Verified  bool
-	Origin    string
-	Password  string
+	ID            string
+	ExternalID    string
+	UserName      string
+	FormattedName string
+	FamilyName    string
+	GivenName     string
+	MiddleName    string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Version       int
+	Emails        []string
+	Groups        []Group
+	Active        bool
+	Verified      bool
+	Origin        string
+	Password      string
 }
 
 func newUserFromCreateDocument(request documents.CreateUserRequest) User {
@@ -49,16 +54,21 @@ func newUserFromUpdateDocument(request documents.UpdateUserRequest) User {
 	}
 
 	return User{
-		ID:        request.ID,
-		UserName:  request.UserName,
-		CreatedAt: request.Meta.Created,
-		UpdatedAt: request.Meta.LastModified,
-		Version:   request.Meta.Version,
-		Emails:    emails,
-		Groups:    make([]Group, 0),
-		Active:    true,
-		Verified:  false,
-		Origin:    Origin,
+		ID:            request.ID,
+		ExternalID:    request.ExternalID,
+		UserName:      request.UserName,
+		FormattedName: request.Name.Formatted,
+		FamilyName:    request.Name.FamilyName,
+		GivenName:     request.Name.GivenName,
+		MiddleName:    request.Name.MiddleName,
+		CreatedAt:     request.Meta.Created,
+		UpdatedAt:     request.Meta.LastModified,
+		Version:       request.Meta.Version,
+		Emails:        emails,
+		Groups:        make([]Group, 0),
+		Active:        true,
+		Verified:      false,
+		Origin:        Origin,
 	}
 }
 
@@ -76,9 +86,16 @@ func (u User) ToDocument() documents.UserResponse {
 	}
 
 	return documents.UserResponse{
-		Schemas:  Schemas,
-		ID:       u.ID,
-		UserName: u.UserName,
+		Schemas:    Schemas,
+		ID:         u.ID,
+		ExternalID: u.ExternalID,
+		UserName:   u.UserName,
+		Name: documents.UserName{
+			Formatted:  u.FormattedName,
+			FamilyName: u.FamilyName,
+			GivenName:  u.GivenName,
+			MiddleName: u.MiddleName,
+		},
 		Meta: documents.Meta{
 			Version:      u.Version,
 			Created:      u.CreatedAt,

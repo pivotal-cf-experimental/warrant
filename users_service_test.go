@@ -39,6 +39,11 @@ var _ = Describe("UsersService", func() {
 			Expect(user.Active).To(BeTrue())
 			Expect(user.Verified).To(BeFalse())
 			Expect(user.Origin).To(Equal("uaa"))
+			Expect(user.ExternalID).To(Equal(""))
+			Expect(user.FormattedName).To(Equal(""))
+			Expect(user.FamilyName).To(Equal(""))
+			Expect(user.GivenName).To(Equal(""))
+			Expect(user.MiddleName).To(Equal(""))
 
 			fetchedUser, err := service.Get(user.ID, token)
 			Expect(err).NotTo(HaveOccurred())
@@ -139,6 +144,26 @@ var _ = Describe("UsersService", func() {
 			user.UserName = "updated-user"
 			updatedUser, err := service.Update(user, token)
 			Expect(err).NotTo(HaveOccurred())
+
+			fetchedUser, err := service.Get(user.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fetchedUser).To(Equal(updatedUser))
+		})
+
+		It("allows fields to be updated", func() {
+			user.ExternalID = "external-id"
+			user.FormattedName = "James Tiberius Kirk"
+			user.FamilyName = "Kirk"
+			user.GivenName = "James"
+			user.MiddleName = "Tiberius"
+
+			updatedUser, err := service.Update(user, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedUser.ExternalID).To(Equal(user.ExternalID))
+			Expect(updatedUser.FormattedName).To(Equal(user.FormattedName))
+			Expect(updatedUser.FamilyName).To(Equal(user.FamilyName))
+			Expect(updatedUser.GivenName).To(Equal(user.GivenName))
+			Expect(updatedUser.MiddleName).To(Equal(user.MiddleName))
 
 			fetchedUser, err := service.Get(user.ID, token)
 			Expect(err).NotTo(HaveOccurred())

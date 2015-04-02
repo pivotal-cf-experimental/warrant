@@ -197,15 +197,15 @@ func newUpdateUserDocumentFromUser(user User) documents.UpdateUserRequest {
 	}
 
 	return documents.UpdateUserRequest{
-		Schemas:  Schemas,
-		ID:       user.ID,
-		UserName: user.UserName,
-		//ExternalID: user.ExternalID, // TODO
+		Schemas:    Schemas,
+		ID:         user.ID,
+		UserName:   user.UserName,
+		ExternalID: user.ExternalID,
 		Name: documents.UserName{
-		//Formatted:  user.FormattedName, // TODO
-		//FamilyName: user.FamilyName,
-		//GivenName:  user.GivenName,
-		//MiddleName: user.MiddleName,
+			Formatted:  user.FormattedName,
+			FamilyName: user.FamilyName,
+			GivenName:  user.GivenName,
+			MiddleName: user.MiddleName,
 		},
 		Emails: emails,
 		Meta: documents.Meta{
