@@ -92,16 +92,16 @@ func (u User) ToDocument() documents.UserResponse {
 	}
 }
 
-func (u User) Validate() (bool, error) {
+func (u User) Validate() error {
 	if len(u.Emails) == 0 {
-		return false, errors.New("An email must be provided.")
+		return errors.New("An email must be provided.")
 	}
 
 	for _, email := range u.Emails {
 		if email == "" {
-			return false, errors.New("[Assertion failed] - this String argument must have text; it must not be null, empty, or blank")
+			return errors.New("[Assertion failed] - this String argument must have text; it must not be null, empty, or blank")
 		}
 	}
 
-	return true, nil
+	return nil
 }

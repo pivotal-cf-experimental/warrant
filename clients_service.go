@@ -39,7 +39,7 @@ func (cs ClientsService) Create(client Client, secret, token string) error {
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
-		panic(err) // TODO: should not panic
+		return translateError(err)
 	}
 
 	return nil

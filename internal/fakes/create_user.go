@@ -38,7 +38,7 @@ func (s *UAAServer) CreateUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	user := newUserFromCreateDocument(document)
-	if ok, err := user.Validate(); !ok {
+	if err := user.Validate(); err != nil {
 		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
 		return
 	}

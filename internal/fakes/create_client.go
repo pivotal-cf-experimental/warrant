@@ -22,6 +22,10 @@ func (s *UAAServer) CreateClient(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := newClientFromDocument(document)
+	if err := client.Validate(); err != nil {
+		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_client")
+		return
+	}
 
 	s.clients.Add(client)
 
