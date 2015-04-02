@@ -20,6 +20,7 @@ var _ = Describe("ClientsService", func() {
 		config = warrant.Config{
 			Host:          fakeUAAServer.URL(),
 			SkipVerifySSL: true,
+			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewClientsService(config)
 		token = fakeUAAServer.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})

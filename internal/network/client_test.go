@@ -46,6 +46,7 @@ var _ = Describe("Client", func() {
 		client = network.NewClient(network.Config{
 			Host:          fakeServer.URL,
 			SkipVerifySSL: true,
+			TraceWriter:   TraceWriter,
 		})
 	})
 
@@ -98,6 +99,7 @@ var _ = Describe("Client", func() {
 				client = network.NewClient(network.Config{
 					Host:          redirectingServer.URL,
 					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs = network.Request{
@@ -319,7 +321,9 @@ var _ = Describe("Client", func() {
 
 			It("returns a RequestConfigurationError when the request params are bad", func() {
 				client = network.NewClient(network.Config{
-					Host: "://example.com",
+					Host:          "://example.com",
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs := network.Request{
@@ -336,7 +340,9 @@ var _ = Describe("Client", func() {
 
 			It("returns a RequestHTTPError when the request fails", func() {
 				client = network.NewClient(network.Config{
-					Host: "banana://example.com",
+					Host:          "banana://example.com",
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs := network.Request{
@@ -358,7 +364,9 @@ var _ = Describe("Client", func() {
 				}))
 
 				client = network.NewClient(network.Config{
-					Host: unintelligibleServer.URL,
+					Host:          unintelligibleServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs := network.Request{
@@ -394,7 +402,9 @@ var _ = Describe("Client", func() {
 				}))
 
 				client = network.NewClient(network.Config{
-					Host: missingServer.URL,
+					Host:          missingServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs := network.Request{
@@ -417,7 +427,9 @@ var _ = Describe("Client", func() {
 				}))
 
 				client = network.NewClient(network.Config{
-					Host: lockedServer.URL,
+					Host:          lockedServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
 				})
 
 				requestArgs := network.Request{

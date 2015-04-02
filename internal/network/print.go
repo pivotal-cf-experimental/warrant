@@ -2,16 +2,16 @@ package network
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 )
 
-// TODO: do not use os.Getenv
 func (c Client) printRequest(request *http.Request) {
-	if os.Getenv("TRACE") != "" {
+	if c.config.TraceWriter != nil {
+		logger := log.New(c.config.TraceWriter, "", 0)
+
 		bodyCopy := bytes.NewBuffer([]byte{})
 		if request.Body != nil {
 			body := bytes.NewBuffer([]byte{})
@@ -23,12 +23,14 @@ func (c Client) printRequest(request *http.Request) {
 			request.Body = ioutil.NopCloser(body)
 		}
 
-		fmt.Printf("REQUEST: %s %s %s %v\n", request.Method, request.URL, bodyCopy.String(), request.Header)
+		logger.Printf("REQUEST: %s %s %s %v\n", request.Method, request.URL, bodyCopy.String(), request.Header)
 	}
 }
 
 func (c Client) printResponse(resp Response) {
-	if os.Getenv("TRACE") != "" {
-		fmt.Printf("RESPONSE: %d %s %+v\n", resp.Code, resp.Body, resp.Headers)
+	if c.config.TraceWriter != nil {
+		logger := log.New(c.config.TraceWriter, "", 0)
+
+		logger.Printf("RESPONSE: %d %s %+v\n", resp.Code, resp.Body, resp.Headers)
 	}
 }

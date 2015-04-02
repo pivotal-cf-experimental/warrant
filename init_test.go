@@ -1,6 +1,8 @@
 package warrant_test
 
 import (
+	"io"
+	"os"
 	"testing"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/fakes"
@@ -9,7 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var fakeUAAServer *fakes.UAAServer
+var (
+	fakeUAAServer *fakes.UAAServer
+	TraceWriter   io.Writer
+)
 
 func TestWarrantSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -17,6 +22,10 @@ func TestWarrantSuite(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	if os.Getenv("TRACE") == "true" {
+		TraceWriter = os.Stdout
+	}
+
 	fakeUAAServer = fakes.NewUAAServer()
 	fakeUAAServer.Start()
 })

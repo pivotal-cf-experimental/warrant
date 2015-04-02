@@ -17,6 +17,7 @@ var _ = Describe("Tokens", func() {
 		warrantClient = warrant.New(warrant.Config{
 			Host:          UAAHost,
 			SkipVerifySSL: true,
+			TraceWriter:   TraceWriter,
 		})
 	})
 

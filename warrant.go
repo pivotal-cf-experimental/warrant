@@ -1,10 +1,15 @@
 package warrant
 
-import "github.com/pivotal-cf-experimental/warrant/internal/network"
+import (
+	"io"
+
+	"github.com/pivotal-cf-experimental/warrant/internal/network"
+)
 
 type Config struct {
 	Host          string
 	SkipVerifySSL bool
+	TraceWriter   io.Writer
 }
 
 type Warrant struct {
@@ -27,5 +32,6 @@ func newNetworkClient(config Config) network.Client {
 	return network.NewClient(network.Config{
 		Host:          config.Host,
 		SkipVerifySSL: config.SkipVerifySSL,
+		TraceWriter:   config.TraceWriter,
 	})
 }

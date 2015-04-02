@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -14,6 +15,7 @@ var (
 	UAAAdminClient string
 	UAAAdminSecret string
 	UAAToken       string
+	TraceWriter    io.Writer
 )
 
 func TestAcceptanceSuite(t *testing.T) {
@@ -22,6 +24,10 @@ func TestAcceptanceSuite(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	if os.Getenv("TRACE") == "true" {
+		TraceWriter = os.Stdout
+	}
+
 	UAAHost = os.Getenv("UAA_HOST")
 	UAAAdminClient = os.Getenv("UAA_ADMIN_CLIENT")
 	UAAAdminSecret = os.Getenv("UAA_ADMIN_SECRET")
@@ -29,6 +35,7 @@ var _ = BeforeSuite(func() {
 	warrantClient := warrant.New(warrant.Config{
 		Host:          UAAHost,
 		SkipVerifySSL: true,
+		TraceWriter:   TraceWriter,
 	})
 
 	var err error

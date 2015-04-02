@@ -19,6 +19,7 @@ type Client struct {
 type Config struct {
 	Host          string
 	SkipVerifySSL bool
+	TraceWriter   io.Writer
 }
 
 type Request struct {

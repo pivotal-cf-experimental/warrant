@@ -16,6 +16,7 @@ var _ = Describe("User Lifecycle", func() {
 		client = warrant.New(warrant.Config{
 			Host:          UAAHost,
 			SkipVerifySSL: true,
+			TraceWriter:   TraceWriter,
 		})
 	})
 

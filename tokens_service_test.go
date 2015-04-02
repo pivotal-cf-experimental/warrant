@@ -12,7 +12,9 @@ var _ = Describe("TokensService", func() {
 
 	BeforeEach(func() {
 		service = warrant.NewTokensService(warrant.Config{
-			Host: fakeUAAServer.URL(),
+			Host:          fakeUAAServer.URL(),
+			SkipVerifySSL: true,
+			TraceWriter:   TraceWriter,
 		})
 	})
 
