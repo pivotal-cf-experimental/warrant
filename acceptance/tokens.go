@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os/exec"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant"
@@ -65,11 +64,8 @@ var _ = Describe("Tokens", func() {
 		)
 
 		AfterEach(func() {
-			// TODO: replace with implementation that does not call out to UAAC
-			cmd := exec.Command("uaac", "client", "delete", client.ID)
-			output, err := cmd.Output()
+			err := warrantClient.Clients.Delete(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("client registration deleted"))
 		})
 
 		It("allows a token for a client to be retrieved", func() {
