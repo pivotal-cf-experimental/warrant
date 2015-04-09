@@ -1,7 +1,6 @@
 package acceptance
 
 import (
-	"os/exec"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant"
@@ -34,11 +33,8 @@ var _ = Describe("Client Lifecycle", func() {
 	})
 
 	AfterEach(func() {
-		// TODO: replace with implementation that does not call out to UAAC
-		cmd := exec.Command("uaac", "client", "delete", client.ID)
-		output, err := cmd.Output()
+		err := warrantClient.Clients.Delete(client.ID, UAAToken)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(output).To(ContainSubstring("client registration deleted"))
 	})
 
 	It("creates, and retrieves a client", func() {
@@ -47,10 +43,32 @@ var _ = Describe("Client Lifecycle", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		By("find the client", func() {
+		By("finding the client", func() {
 			fetchedClient, err := warrantClient.Clients.Get(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedClient).To(Equal(client))
+		})
+	})
+
+	It("rejects requests from clients that do not have clients.write scope", func() {
+		var token string
+
+		By("creating a client", func() {
+			err := warrantClient.Clients.Create(client, "secret", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		By("fetching the new client token", func() {
+			var err error
+
+			token, err = warrantClient.Clients.GetToken(client.ID, "secret")
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		By("using the new client token to delete the client", func() {
+			err := warrantClient.Clients.Delete(client.ID, token)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 	})
 })

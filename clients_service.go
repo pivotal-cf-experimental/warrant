@@ -65,6 +65,20 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 	return newClientFromDocument(document), nil
 }
 
+func (cs ClientsService) Delete(id, token string) error {
+	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
+		Method:				"DELETE",
+		Path:				fmt.Sprintf("/oauth/clients/%s", id),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return translateError(err)
+	}
+
+	return nil
+}
+
 func (cs ClientsService) GetToken(id, secret string) (string, error) {
 	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",

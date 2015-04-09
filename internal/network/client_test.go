@@ -421,7 +421,7 @@ var _ = Describe("Client", func() {
 				missingServer.Close()
 			})
 
-			It("returns an UnauthorizedError when the response status is 401", func() {
+			It("returns an UnauthorizedError when the response status is 401 Unauthorized", func() {
 				lockedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					w.WriteHeader(http.StatusUnauthorized)
 				}))
@@ -444,6 +444,31 @@ var _ = Describe("Client", func() {
 				Expect(err).To(BeAssignableToTypeOf(network.UnauthorizedError{}))
 
 				lockedServer.Close()
+			})
+
+			It("returns an UnauthorizedError when the response status is 403 Forbidden", func() {
+				forbiddenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.WriteHeader(http.StatusForbidden)
+				}))
+
+				client = network.NewClient(network.Config{
+					Host:          forbiddenServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				requestArgs := network.Request{
+					Method:        "GET",
+					Path:          "/path",
+					Authorization: network.NewTokenAuthorization(token),
+					Body:          nil,
+					AcceptableStatusCodes: []int{http.StatusOK},
+				}
+				_, err := client.MakeRequest(requestArgs)
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(BeAssignableToTypeOf(network.UnauthorizedError{}))
+
+				forbiddenServer.Close()
 			})
 		})
 	})

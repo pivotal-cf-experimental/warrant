@@ -103,7 +103,7 @@ func (c Client) MakeRequest(req Request) (Response, error) {
 		return Response{}, newNotFoundError(responseBody)
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 		return Response{}, newUnauthorizedError(responseBody)
 	}
 

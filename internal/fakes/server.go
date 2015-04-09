@@ -36,10 +36,12 @@ func NewUAAServer() *UAAServer {
 	router.HandleFunc("/Users/{guid}", server.UpdateUser).Methods("PUT")
 	router.HandleFunc("/Users/{guid}/password", server.UpdateUserPassword).Methods("PUT")
 
-	router.HandleFunc("/oauth/authorize", server.OAuthAuthorize).Methods("POST")
-	router.HandleFunc("/oauth/clients/{guid}", server.GetClient).Methods("GET")
 	router.HandleFunc("/oauth/clients", server.CreateClient).Methods("POST")
+	router.HandleFunc("/oauth/clients/{guid}", server.GetClient).Methods("GET")
+	router.HandleFunc("/oauth/clients/{guid}", server.DeleteClient).Methods("DELETE")
+
 	router.HandleFunc("/oauth/token", server.OAuthToken).Methods("POST")
+	router.HandleFunc("/oauth/authorize", server.OAuthAuthorize).Methods("POST")
 
 	return server
 }

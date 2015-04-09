@@ -22,3 +22,9 @@ func (c Clients) Get(id string) (Client, bool) {
 func (c *Clients) Clear() {
 	c.store = make(map[string]Client)
 }
+
+func (c Clients) Delete(id string) bool {
+	_, ok := c.store[id]
+	delete(c.store, id)
+	return ok
+}

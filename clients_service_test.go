@@ -92,4 +92,37 @@ var _ = Describe("ClientsService", func() {
 			Expect(decodedToken.ClientID).To(Equal(client.ID))
 		})
 	})
+
+	Describe("Delete", func() {
+		var client warrant.Client
+
+		BeforeEach(func() {
+			client = warrant.Client{
+				ID:                   "client-id",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+			}
+
+			err := service.Create(client, "secret", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("deletes the client", func() {
+			err := service.Delete(client.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = service.Get(client.ID, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+		})
+
+		It("errors when the token is unauthorized", func() {
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
+			err := service.Delete(client.ID, token)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+	})
 })
