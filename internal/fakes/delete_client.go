@@ -12,7 +12,7 @@ func (s *UAAServer) DeleteClient(w http.ResponseWriter, req *http.Request) {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
-	
+
 	if ok := s.ValidateToken(token, []string{"clients"}, []string{"clients.write"}); !ok {
 		s.Error(w, http.StatusForbidden, "Invalid token does not contain resource id (clients)", "access_denied")
 		return

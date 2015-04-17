@@ -1,6 +1,7 @@
 package warrant_test
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant"
@@ -314,6 +315,26 @@ var _ = Describe("UsersService", func() {
 		It("returns an error when the response is not parsable", func() {
 			_, err := service.GetToken("username", "password", "cf", "%%%")
 			Expect(err).To(MatchError(`parse %%%: invalid URL escape "%%%"`))
+		})
+	})
+
+	Describe("Find", func() {
+		var user warrant.User
+
+		BeforeEach(func() {
+			var err error
+			user, err = service.Create("username", "user@example.com", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("finds users that match a filter", func() {
+			users, err := service.Find(warrant.UsersQuery{
+				Filter: fmt.Sprintf("id eq '%s'", user.ID),
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(users).To(HaveLen(1))
+			Expect(users[0].ID).To(Equal(user.ID))
 		})
 	})
 })

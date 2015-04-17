@@ -35,6 +35,14 @@ type UserResponse struct {
 	Origin     string   `json:"origin"`
 }
 
+type UserListResponse struct {
+	Resources    []UserResponse `json:"resources"`
+	StartIndex   int            `json:"startIndex"`
+	ItemsPerPage int            `json:"itemsPerPage"`
+	TotalResults int            `json:"totalResults"`
+	Schemas      []string       `json:"schemas"`
+}
+
 type UserName struct {
 	Formatted  string `json:"formatted"`
 	FamilyName string `json:"familyName"`

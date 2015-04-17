@@ -67,8 +67,8 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 
 func (cs ClientsService) Delete(id, token string) error {
 	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
-		Method:				"DELETE",
-		Path:				fmt.Sprintf("/oauth/clients/%s", id),
+		Method:                "DELETE",
+		Path:                  fmt.Sprintf("/oauth/clients/%s", id),
 		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})

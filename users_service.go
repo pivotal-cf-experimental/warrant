@@ -188,6 +188,42 @@ func (us UsersService) GetToken(username, password, client, redirectURI string) 
 	return locationQuery.Get("access_token"), nil
 }
 
+type UsersQuery struct {
+	Filter string
+}
+
+func (us UsersService) Find(query UsersQuery, token string) ([]User, error) {
+	requestPath := url.URL{
+		Path: "/Users",
+		RawQuery: url.Values{
+			"filter": []string{query.Filter},
+		}.Encode(),
+	}
+
+	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
+		Method:                "GET",
+		Path:                  requestPath.String(),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	var response documents.UserListResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		panic(err)
+	}
+
+	var userList []User
+	for _, userResponse := range response.Resources {
+		userList = append(userList, newUserFromResponse(us.config, userResponse))
+	}
+
+	return userList, err
+}
+
 func newUpdateUserDocumentFromUser(user User) documents.UpdateUserRequest {
 	var emails []documents.Email
 	for _, email := range user.Emails {

@@ -31,6 +31,7 @@ func NewUAAServer() *UAAServer {
 	}
 
 	router.HandleFunc("/Users", server.CreateUser).Methods("POST")
+	router.HandleFunc("/Users", server.FindUsers).Methods("GET")
 	router.HandleFunc("/Users/{guid}", server.GetUser).Methods("GET")
 	router.HandleFunc("/Users/{guid}", server.DeleteUser).Methods("DELETE")
 	router.HandleFunc("/Users/{guid}", server.UpdateUser).Methods("PUT")
