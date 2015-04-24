@@ -38,7 +38,7 @@ var _ = Describe("Passwords", func() {
 
 		By("retrieving the user token using the new password", func() {
 			var err error
-			userToken, err = client.Users.GetToken(user.UserName, "password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
+			userToken, err = client.Users.GetToken(user.UserName, "password")
 			Expect(err).NotTo(HaveOccurred())
 
 			decodedToken, err := client.Tokens.Decode(userToken)
@@ -53,7 +53,7 @@ var _ = Describe("Passwords", func() {
 
 		By("retrieving the user token using the new password", func() {
 			var err error
-			userToken, err = client.Users.GetToken(user.UserName, "new-password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
+			userToken, err = client.Users.GetToken(user.UserName, "new-password")
 			Expect(err).NotTo(HaveOccurred())
 
 			decodedToken, err := client.Tokens.Decode(userToken)

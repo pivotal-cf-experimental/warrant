@@ -45,7 +45,7 @@ var _ = Describe("Tokens", func() {
 
 			By("retrieving a user token", func() {
 				var err error
-				userToken, err = warrantClient.Users.GetToken("username", "password", "cf", "https://uaa.cloudfoundry.com/redirect/cf")
+				userToken, err = warrantClient.Users.GetToken("username", "password")
 				Expect(err).NotTo(HaveOccurred())
 			})
 

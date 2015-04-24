@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
@@ -50,9 +51,11 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	scopes := strings.Join(s.defaultScopes, " ")
+
 	token := s.tokenizer.Encrypt(Token{
 		UserID:    user.ID,
-		Scopes:    []string{},
+		Scopes:    s.defaultScopes,
 		Audiences: []string{},
 	})
 
@@ -62,7 +65,7 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 		"token_type":   []string{"bearer"},
 		"access_token": []string{token},
 		"expires_in":   []string{"599"},
-		"scope":        []string{"scim.read cloudcontroller.admin password.write scim.write openid cloud_controller.write cloud_controller.read doppler.firehose"},
+		"scope":        []string{scopes},
 		"jti":          []string{"ad0efc96-ed29-43ef-be75-85a4b4f105b5"},
 	}
 	location := fmt.Sprintf("%s#%s", redirectURI, query.Encode())

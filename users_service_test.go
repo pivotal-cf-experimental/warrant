@@ -3,6 +3,8 @@ package warrant_test
 import (
 	"fmt"
 	"time"
+	"net/http"
+	"net/http/httptest"
 
 	"github.com/pivotal-cf-experimental/warrant"
 
@@ -297,7 +299,7 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("returns a valid token given a username and password", func() {
-			token, err := service.GetToken("username", "password", "cf", "https://cf.example.com/redirect")
+			token, err := service.GetToken("username", "password")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).NotTo(BeEmpty())
 
@@ -308,12 +310,20 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("returns an error when the request does not succeed", func() {
-			_, err := service.GetToken("unknown-user", "password", "cf", "https://cf.example.com/redirect")
+			_, err := service.GetToken("unknown-user", "password")
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 
 		It("returns an error when the response is not parsable", func() {
-			_, err := service.GetToken("username", "password", "cf", "%%%")
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.Header().Set("Location", "%%%")
+				w.WriteHeader(http.StatusFound)
+			}))
+
+			config.Host = server.URL
+			service =  warrant.NewUsersService(config)
+
+			_, err := service.GetToken("username", "password")
 			Expect(err).To(MatchError(`parse %%%: invalid URL escape "%%%"`))
 		})
 	})

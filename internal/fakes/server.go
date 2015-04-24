@@ -16,6 +16,7 @@ var Schemas = []string{Schema}
 
 type UAAServer struct {
 	server    *httptest.Server
+	defaultScopes []string
 	tokenizer Tokenizer
 	users     *Users
 	clients   *Clients
@@ -25,6 +26,16 @@ func NewUAAServer() *UAAServer {
 	router := mux.NewRouter()
 	server := &UAAServer{
 		server:    httptest.NewUnstartedServer(router),
+		defaultScopes: []string{
+			"scim.read",
+			"cloudcontroller.admin",
+			"password.write",
+			"scim.write",
+			"openid",
+			"cloud_controller.write",
+			"cloud_controller.read",
+			"doppler.firehose",
+		},
 		tokenizer: NewTokenizer("this is the encryption key"),
 		users:     NewUsers(),
 		clients:   NewClients(),
@@ -62,6 +73,10 @@ func (s *UAAServer) Reset() {
 
 func (s *UAAServer) URL() string {
 	return s.server.URL
+}
+
+func (s *UAAServer) SetDefaultScopes(scopes []string) {
+	s.defaultScopes = scopes
 }
 
 func (s *UAAServer) ClientTokenFor(clientID string, scopes, audiences []string) string {

@@ -147,10 +147,10 @@ func (us UsersService) ChangePassword(id, oldPassword, password, token string) e
 	return nil
 }
 
-func (us UsersService) GetToken(username, password, client, redirectURI string) (string, error) {
+func (us UsersService) GetToken(username, password string) (string, error) {
 	query := url.Values{
 		"client_id":     []string{"cf"},
-		"redirect_uri":  []string{redirectURI},
+		"redirect_uri":  []string{"https://uaa.cloudfoundry.com/redirect/cf"},
 		"response_type": []string{"token"},
 	}
 

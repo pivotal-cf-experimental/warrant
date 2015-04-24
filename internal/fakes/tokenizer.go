@@ -76,8 +76,13 @@ func NewTokenFromClaims(claims map[string]interface{}) Token {
 		token.ClientID = clientID
 	}
 
-	if scopes, ok := claims["scope"].(string); ok {
-		token.Scopes = strings.Split(scopes, " ")
+	if scopes, ok := claims["scope"].([]interface{}); ok {
+		var s []string
+		for _, scope := range scopes {
+			s = append(s, scope.(string))
+		}
+
+		token.Scopes = s
 	}
 
 	if audiences, ok := claims["aud"].(string); ok {
@@ -98,7 +103,7 @@ func (t Token) ToClaims() map[string]interface{} {
 		claims["client_id"] = t.ClientID
 	}
 
-	claims["scope"] = strings.Join(t.Scopes, " ")
+	claims["scope"] = t.Scopes
 	claims["aud"] = strings.Join(t.Audiences, " ")
 
 	return claims

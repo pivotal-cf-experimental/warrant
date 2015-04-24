@@ -10,6 +10,7 @@ import (
 type Token struct {
 	ClientID string `json:"client_id"`
 	UserID   string `json:"user_id"`
+	Scopes 	 []string `json:"scope"`
 }
 
 type TokensService struct{}
