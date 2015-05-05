@@ -4,23 +4,15 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/pivotal-golang/conceal"
 )
 
 type Tokenizer struct {
-	key   []byte
-	cloak conceal.Cloak
+	key []byte
 }
 
 func NewTokenizer(key string) Tokenizer {
-	cloak, err := conceal.NewCloak([]byte(key))
-	if err != nil {
-		panic(err)
-	}
-
 	return Tokenizer{
-		key:   []byte(key),
-		cloak: cloak,
+		key: []byte(key),
 	}
 }
 
