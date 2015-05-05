@@ -23,7 +23,12 @@ var _ = Describe("Finding a user from UAA", func() {
 		})
 
 		var err error
-		user, err = warrantClient.Users.Create("username", "username@example.com", UAAToken)
+		user, err = warrantClient.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		err := warrantClient.Users.Delete(user.ID, UAAToken)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

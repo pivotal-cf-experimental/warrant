@@ -8,7 +8,10 @@ import (
 )
 
 var _ = Describe("Passwords", func() {
-	var client warrant.Warrant
+	var (
+		client warrant.Warrant
+		user   warrant.User
+	)
 
 	BeforeEach(func() {
 		client = warrant.New(warrant.Config{
@@ -19,15 +22,19 @@ var _ = Describe("Passwords", func() {
 
 	})
 
+	AfterEach(func() {
+		err := client.Users.Delete(user.ID, UAAToken)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("allows a user password to be set/updated", func() {
 		var (
-			user      warrant.User
 			userToken string
 		)
 
 		By("creating a new user", func() {
 			var err error
-			user, err = client.Users.Create("user-name", "user@example.com", UAAToken)
+			user, err = client.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -59,14 +66,6 @@ var _ = Describe("Passwords", func() {
 			decodedToken, err := client.Tokens.Decode(userToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(decodedToken.UserID).To(Equal(user.ID))
-		})
-
-		By("deleting the user", func() {
-			err := client.Users.Delete(user.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = client.Users.Get(user.ID, UAAToken)
-			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 	})
 })

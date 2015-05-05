@@ -34,7 +34,7 @@ var _ = Describe("Tokens", func() {
 		It("allows a token to be retrieved", func() {
 			By("creating a new user", func() {
 				var err error
-				user, err = warrantClient.Users.Create("username", "user@example.com", UAAToken)
+				user, err = warrantClient.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -45,7 +45,7 @@ var _ = Describe("Tokens", func() {
 
 			By("retrieving a user token", func() {
 				var err error
-				userToken, err = warrantClient.Users.GetToken("username", "password")
+				userToken, err = warrantClient.Users.GetToken(UAADefaultUsername, "password")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -71,7 +71,7 @@ var _ = Describe("Tokens", func() {
 		It("allows a token for a client to be retrieved", func() {
 			By("creating a new client", func() {
 				client = warrant.Client{
-					ID:                   "client-id",
+					ID:                   UAADefaultClientID,
 					Scope:                []string{},
 					ResourceIDs:          []string{""},
 					Authorities:          []string{"scim.read", "scim.write"},
@@ -85,7 +85,7 @@ var _ = Describe("Tokens", func() {
 
 			By("retrieving the client token", func() {
 				var err error
-				clientToken, err = warrantClient.Clients.GetToken("client-id", "client-secret")
+				clientToken, err = warrantClient.Clients.GetToken(UAADefaultClientID, "client-secret")
 				Expect(err).NotTo(HaveOccurred())
 			})
 

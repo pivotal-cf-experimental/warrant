@@ -10,7 +10,10 @@ import (
 )
 
 var _ = Describe("User Lifecycle", func() {
-	var client warrant.Warrant
+	var (
+		client warrant.Warrant
+		user   warrant.User
+	)
 
 	BeforeEach(func() {
 		client = warrant.New(warrant.Config{
@@ -20,19 +23,23 @@ var _ = Describe("User Lifecycle", func() {
 		})
 	})
 
-	It("creates, retrieves, and deletes a user", func() {
-		var user warrant.User
+	AfterEach(func() {
+		client.Users.Delete(user.ID, UAAToken)
 
+		_, err := client.Users.Get(user.ID, UAAToken)
+		Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+	})
+
+	It("creates, retrieves, and deletes a user", func() {
 		By("creating a new user", func() {
 			var err error
-			user, err = client.Users.Create("user-name", "user@example.com", UAAToken)
+			user, err = client.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(user.UserName).To(Equal("user-name"))
-			Expect(user.Emails).To(ConsistOf([]string{"user@example.com"}))
+			Expect(user.UserName).To(Equal(UAADefaultUsername))
+			Expect(user.Emails).To(ConsistOf([]string{"warrant-user@example.com"}))
 			Expect(user.CreatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 			Expect(user.UpdatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 			Expect(user.Version).To(Equal(0))
-			Expect(user.Emails).To(ConsistOf([]string{"user@example.com"}))
 			Expect(user.Active).To(BeTrue())
 			Expect(user.Verified).To(BeFalse())
 			Expect(user.Origin).To(Equal("uaa"))
@@ -53,23 +60,15 @@ var _ = Describe("User Lifecycle", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedUser).To(Equal(updatedUser))
 		})
-
-		By("deleting the user", func() {
-			err := client.Users.Delete(user.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = client.Users.Get(user.ID, UAAToken)
-			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
-		})
 	})
 
 	It("does not allow a user to be created without an email address", func() {
-		_, err := client.Users.Create("invalid-email-user", "", UAAToken)
+		_, err := client.Users.Create("warrant-invalid-email-user", "", UAAToken)
 		Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
 	})
 
 	It("does not allow non-existant users to be updated", func() {
-		user, err := client.Users.Create("user-name", "user@example.com", UAAToken)
+		user, err := client.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
 		Expect(err).NotTo(HaveOccurred())
 
 		originalUserID := user.ID

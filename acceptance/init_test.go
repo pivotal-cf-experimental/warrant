@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -8,6 +9,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf-experimental/warrant"
+)
+
+const (
+	UAADefaultUsername = "warrant-user"
+	UAADefaultClientID = "warrant-client"
 )
 
 var (
@@ -28,7 +34,7 @@ var _ = BeforeSuite(func() {
 		TraceWriter = os.Stdout
 	}
 
-	UAAHost = os.Getenv("UAA_HOST")
+	UAAHost = fmt.Sprintf("https://%s", os.Getenv("UAA_HOST"))
 	UAAAdminClient = os.Getenv("UAA_ADMIN_CLIENT")
 	UAAAdminSecret = os.Getenv("UAA_ADMIN_SECRET")
 

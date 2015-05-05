@@ -17,7 +17,7 @@ var _ = Describe("Client Lifecycle", func() {
 
 	BeforeEach(func() {
 		client = warrant.Client{
-			ID:                   "warrant-client",
+			ID:                   UAADefaultClientID,
 			Scope:                []string{"openid"},
 			ResourceIDs:          []string{"none"},
 			Authorities:          []string{"scim.read", "scim.write"},
