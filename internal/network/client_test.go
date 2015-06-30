@@ -87,11 +87,21 @@ var _ = Describe("Client", func() {
 			}`))
 		})
 
-		It("can make more requests than the `ulimit -n` limit", func() {
-			cmd := exec.Command("ulimit", "-n")
-			output, err := cmd.Output()
-			Expect(err).NotTo(HaveOccurred())
+		It("can make more requests than the total allowed number of open files", func() {
+			var output []byte
 
+			_, err := exec.LookPath("ulimit")
+			if err != nil {
+				var err error
+				output, err = ioutil.ReadFile("/proc/sys/fs/nr_open")
+				Expect(err).NotTo(HaveOccurred())
+			} else {
+				cmd := exec.Command("ulimit", "-n")
+
+				var err error
+				output, err = cmd.Output()
+				Expect(err).NotTo(HaveOccurred())
+			}
 			fdCount, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
 			Expect(err).NotTo(HaveOccurred())
 
