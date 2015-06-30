@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pivotal-cf-experimental/warrant/internal/documents"
+	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
 type Token struct {
@@ -15,10 +17,19 @@ type Token struct {
 	Scopes   []string `json:"scope"`
 }
 
-type TokensService struct{}
+type TokensService struct {
+	config Config
+}
+
+type SigningKey struct {
+	Algorithm string
+	Value     string
+}
 
 func NewTokensService(config Config) TokensService {
-	return TokensService{}
+	return TokensService{
+		config: config,
+	}
 }
 
 func (ts TokensService) Decode(token string) (Token, error) {
@@ -39,4 +50,23 @@ func (ts TokensService) Decode(token string) (Token, error) {
 	}
 
 	return t, nil
+}
+
+func (ts TokensService) GetSigningKey() (SigningKey, error) {
+	resp, err := newNetworkClient(ts.config).MakeRequest(network.Request{
+		Method: "GET",
+		Path:   "/token_key",
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return SigningKey{}, translateError(err)
+	}
+
+	var response documents.TokenKeyResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return SigningKey{}, MalformedResponseError{err}
+	}
+
+	return SigningKey{Algorithm: response.Alg, Value: response.Value}, nil
 }
