@@ -19,13 +19,8 @@ var _ = Describe("TokensService", func() {
 	})
 
 	Describe("Decode", func() {
-		var encodedToken string
-
-		BeforeEach(func() {
-			encodedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlci1pZCIsInNjb3BlIjpbInNjaW0ucmVhZCIsImNsb3VkX2NvbnRyb2xsZXIuYWRtaW4iLCJwYXNzd29yZC53cml0ZSJdfQ.QWNTRFahfCn7qSWxEHTCn6QeZMJxNMq9a_TP8aANc4k"
-		})
-
 		It("returns a decoded token given an encoded token string", func() {
+			encodedToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlci1pZCIsInNjb3BlIjpbInNjaW0ucmVhZCIsImNsb3VkX2NvbnRyb2xsZXIuYWRtaW4iLCJwYXNzd29yZC53cml0ZSJdfQ.QWNTRFahfCn7qSWxEHTCn6QeZMJxNMq9a_TP8aANc4k"
 			token, err := service.Decode(encodedToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).To(Equal(warrant.Token{

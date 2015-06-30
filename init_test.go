@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	fakeUAAServer *fakes.UAAServer
-	TraceWriter   io.Writer
+	fakeUAAServer    *fakes.UAAServer
+	fakeUAAPublicKey string
+	TraceWriter      io.Writer
 )
 
 func TestWarrantSuite(t *testing.T) {
