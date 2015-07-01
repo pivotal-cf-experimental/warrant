@@ -17,6 +17,8 @@ func translateError(err error) error {
 		switch s.Status {
 		case http.StatusBadRequest:
 			return BadRequestError{err}
+		case http.StatusConflict:
+			return DuplicateResourceError{err}
 		default:
 			return UnexpectedStatusError{err}
 		}
@@ -79,4 +81,12 @@ type BadRequestError struct {
 
 func (e BadRequestError) Error() string {
 	return fmt.Sprintf("bad request: %s", e.err.(network.UnexpectedStatusError).Body)
+}
+
+type DuplicateResourceError struct {
+	err error
+}
+
+func (e DuplicateResourceError) Error() string {
+	return fmt.Sprintf("duplicate resource: %s", e.err.(network.UnexpectedStatusError).Body)
 }

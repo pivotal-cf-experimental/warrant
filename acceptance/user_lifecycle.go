@@ -79,4 +79,17 @@ var _ = Describe("User Lifecycle", func() {
 		err = client.Users.Delete(originalUserID, UAAToken)
 		Expect(err).NotTo(HaveOccurred())
 	})
+
+	Context("when a user already exists", func() {
+		BeforeEach(func() {
+			var err error
+			user, err = client.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("does not allow duplicate users to be created", func() {
+			_, err := client.Users.Create(UAADefaultUsername, "warrant-user@example.com", UAAToken)
+			Expect(err).To(BeAssignableToTypeOf(warrant.DuplicateResourceError{}))
+		})
+	})
 })

@@ -22,6 +22,7 @@ type UAAServer struct {
 	server    *httptest.Server
 	users     *Users
 	clients   *Clients
+	groups    *Groups
 	tokenizer Tokenizer
 
 	defaultScopes []string
@@ -46,6 +47,7 @@ func NewUAAServer(config ServerConfig) *UAAServer {
 		tokenizer: NewTokenizer("this is the encryption key"),
 		users:     NewUsers(),
 		clients:   NewClients(),
+		groups:    NewGroups(),
 	}
 
 	router.HandleFunc("/Users", server.CreateUser).Methods("POST")
@@ -64,6 +66,8 @@ func NewUAAServer(config ServerConfig) *UAAServer {
 
 	router.HandleFunc("/token_key", server.GetTokenKey).Methods("GET")
 
+	router.HandleFunc("/Groups", server.CreateGroup).Methods("POST")
+
 	return server
 }
 
@@ -78,6 +82,7 @@ func (s *UAAServer) Close() {
 func (s *UAAServer) Reset() {
 	s.users.Clear()
 	s.clients.Clear()
+	s.groups.Clear()
 }
 
 func (s *UAAServer) URL() string {

@@ -25,4 +25,8 @@ var _ = Describe("Warrant", func() {
 	It("has a tokens service", func() {
 		Expect(client.Tokens).To(BeAssignableToTypeOf(warrant.TokensService{}))
 	})
+
+	It("has a groups service", func() {
+		Expect(client.Groups).To(BeAssignableToTypeOf(warrant.GroupsService{}))
+	})
 })

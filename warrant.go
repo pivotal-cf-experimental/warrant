@@ -17,6 +17,7 @@ type Warrant struct {
 	Users   UsersService
 	Clients ClientsService
 	Tokens  TokensService
+	Groups  GroupsService
 }
 
 func New(config Config) Warrant {
@@ -25,6 +26,7 @@ func New(config Config) Warrant {
 		Users:   NewUsersService(config),
 		Clients: NewClientsService(config),
 		Tokens:  NewTokensService(config),
+		Groups:  NewGroupsService(config),
 	}
 }
 

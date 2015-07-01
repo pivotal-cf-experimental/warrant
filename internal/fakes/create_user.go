@@ -37,6 +37,11 @@ func (s *UAAServer) CreateUser(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
+	if _, ok := s.users.GetByName(document.UserName); ok {
+		s.Error(w, http.StatusConflict, fmt.Sprintf("Username already in use: %s", document.UserName), "scim_resource_already_exists")
+		return
+	}
+
 	user := newUserFromCreateDocument(document)
 	if err := user.Validate(); err != nil {
 		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
