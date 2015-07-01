@@ -73,6 +73,15 @@ var _ = Describe("UsersService", func() {
 		})
 
 		Context("failure cases", func() {
+			It("returns an error when a user with the given username already exists", func() {
+				_, err := service.Create("username", "user@example.com", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Create("username", "user@example.com", token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.DuplicateResourceError{}))
+				Expect(err.Error()).To(Equal("duplicate resource: {\"message\":\"Username already in use: username\",\"error\":\"scim_resource_already_exists\"}"))
+			})
+
 			It("returns an error when the json response is malformed", func() {
 				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					w.WriteHeader(http.StatusCreated)
