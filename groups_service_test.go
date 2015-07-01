@@ -173,7 +173,7 @@ var _ = Describe("GroupsService", func() {
 			readGroup, err := service.Create("banana.read", token)
 			Expect(err).NotTo(HaveOccurred())
 
-			groups, err := service.List(token)
+			groups, err := service.List(warrant.Query{}, token)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(groups).To(HaveLen(2))
 			Expect(groups).To(ConsistOf(writeGroup, readGroup))
@@ -190,7 +190,7 @@ var _ = Describe("GroupsService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.List(token)
+				_, err := service.List(warrant.Query{}, token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
 			})
 
@@ -204,7 +204,7 @@ var _ = Describe("GroupsService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.List(token)
+				_, err := service.List(warrant.Query{}, token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
 			})

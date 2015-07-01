@@ -15,6 +15,7 @@ import (
 // TODO: Verify a user
 // TODO: Query for user info
 // TODO: Convert user ids to names
+// TODO: Pagination for List
 
 const Schema = "urn:scim:schemas:core:1.0"
 
@@ -188,11 +189,11 @@ func (us UsersService) GetToken(username, password string) (string, error) {
 	return locationQuery.Get("access_token"), nil
 }
 
-type UsersQuery struct {
+type Query struct {
 	Filter string
 }
 
-func (us UsersService) Find(query UsersQuery, token string) ([]User, error) {
+func (us UsersService) List(query Query, token string) ([]User, error) {
 	requestPath := url.URL{
 		Path: "/Users",
 		RawQuery: url.Values{

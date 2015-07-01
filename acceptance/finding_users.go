@@ -33,7 +33,7 @@ var _ = Describe("Finding a user from UAA", func() {
 	})
 
 	It("finds users given a filter", func() {
-		users, err := warrantClient.Users.Find(warrant.UsersQuery{
+		users, err := warrantClient.Users.List(warrant.Query{
 			Filter: fmt.Sprintf("id eq '%s'", user.ID),
 		}, UAAToken)
 		Expect(err).NotTo(HaveOccurred())

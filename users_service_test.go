@@ -391,7 +391,7 @@ var _ = Describe("UsersService", func() {
 		})
 	})
 
-	Describe("Find", func() {
+	Describe("List", func() {
 		var user warrant.User
 
 		BeforeEach(func() {
@@ -401,7 +401,7 @@ var _ = Describe("UsersService", func() {
 		})
 
 		It("finds users that match a filter", func() {
-			users, err := service.Find(warrant.UsersQuery{
+			users, err := service.List(warrant.Query{
 				Filter: fmt.Sprintf("id eq '%s'", user.ID),
 			}, token)
 			Expect(err).NotTo(HaveOccurred())
@@ -412,7 +412,7 @@ var _ = Describe("UsersService", func() {
 
 		Context("failure cases", func() {
 			It("returns an error when the query is malformed", func() {
-				_, err := service.Find(warrant.UsersQuery{
+				_, err := service.List(warrant.Query{
 					Filter: fmt.Sprintf("invalid-parameter eq '%s'", user.ID),
 				}, token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
@@ -429,7 +429,7 @@ var _ = Describe("UsersService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.Find(warrant.UsersQuery{
+				_, err := service.List(warrant.Query{
 					Filter: fmt.Sprintf("id eq '%s'", user.ID),
 				}, token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))

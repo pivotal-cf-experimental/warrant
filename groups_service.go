@@ -9,6 +9,8 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
+// TODO: Pagination for List
+
 type GroupsService struct {
 	config Config
 }
@@ -63,7 +65,7 @@ func (gs GroupsService) Get(id, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
-func (gs GroupsService) List(token string) ([]Group, error) {
+func (gs GroupsService) List(query Query, token string) ([]Group, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
 		Path:                  "/Groups",
