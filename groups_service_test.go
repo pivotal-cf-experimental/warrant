@@ -78,4 +78,39 @@ var _ = Describe("GroupsService", func() {
 			})
 		})
 	})
+
+	Describe("Delete", func() {
+		var group warrant.Group
+
+		BeforeEach(func() {
+			var err error
+			group, err = service.Create("banana.read", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("deletes the group", func() {
+			err := service.Delete(group.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = service.Create("banana.read", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("requires the scim.write scope", func() {
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
+			err := service.Delete(group.ID, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("requires the scim audience", func() {
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
+			err := service.Delete(group.ID, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("returns an error when the group does not exist", func() {
+			err := service.Delete("non-existant-group-guid", token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+		})
+	})
 })

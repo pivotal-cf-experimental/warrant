@@ -2,6 +2,7 @@ package warrant
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
@@ -40,6 +41,20 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 	}
 
 	return newGroupFromResponse(gs.config, response), nil
+}
+
+func (gs GroupsService) Delete(id, token string) error {
+	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:                "DELETE",
+		Path:                  fmt.Sprintf("/Groups/%s", id),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return translateError(err)
+	}
+
+	return nil
 }
 
 func newGroupFromResponse(config Config, response documents.GroupResponse) Group {

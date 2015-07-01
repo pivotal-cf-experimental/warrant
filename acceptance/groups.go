@@ -22,9 +22,10 @@ var _ = Describe("Groups", func() {
 	})
 
 	AfterEach(func() {
-		//client.Groups.Delete(group.ID, UAAToken)
+		err := client.Groups.Delete(group.ID, UAAToken)
+		Expect(err).NotTo(HaveOccurred())
 
-		//_, err := client.Group.Get(group.ID, UAAToken)
+		//_, err := client.Groups.Get(group.ID, UAAToken)
 		//Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 	})
 
