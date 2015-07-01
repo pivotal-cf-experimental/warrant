@@ -128,6 +128,11 @@ var _ = Describe("UsersService", func() {
 		})
 
 		Context("failure cases", func() {
+			It("returns an error when the user cannot be found", func() {
+				_, err := service.Get("non-existent-user-id", token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+			})
+
 			It("returns an error when the json response is malformed", func() {
 				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					w.Write([]byte("this is not JSON"))
