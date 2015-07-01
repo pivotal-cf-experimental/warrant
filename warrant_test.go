@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Client", func() {
+var _ = Describe("Warrant", func() {
 	var client warrant.Warrant
 
 	BeforeEach(func() {
