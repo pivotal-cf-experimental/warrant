@@ -25,7 +25,7 @@ var _ = Describe("GroupsService", func() {
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewGroupsService(config)
-		token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
+		token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write", "scim.read"}, []string{"scim"})
 	})
 
 	Describe("Create", func() {
@@ -40,7 +40,7 @@ var _ = Describe("GroupsService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
 			_, err := service.Create("banana.write", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -79,6 +79,57 @@ var _ = Describe("GroupsService", func() {
 		})
 	})
 
+	Describe("Get", func() {
+		var createdGroup warrant.Group
+
+		BeforeEach(func() {
+			var err error
+			createdGroup, err = service.Create("banana.write", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("returns the found group", func() {
+			group, err := service.Get(createdGroup.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(group).To(Equal(createdGroup))
+		})
+
+		It("requires the scim.read scope", func() {
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
+			_, err := service.Get(createdGroup.ID, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("requires the scim audience", func() {
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
+			_, err := service.Get(createdGroup.ID, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		Context("failure cases", func() {
+			It("returns an error when the group cannot be found", func() {
+				_, err := service.Get("non-existent-group-id", token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+			})
+
+			It("returns an error when the json response is malformed", func() {
+				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Write([]byte("this is not JSON"))
+				}))
+				service = warrant.NewGroupsService(warrant.Config{
+					Host:          malformedJSONServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.Get("some-group-id", "some-token")
+				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
+
+				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
+			})
+		})
+	})
+
 	Describe("Delete", func() {
 		var group warrant.Group
 
@@ -97,7 +148,7 @@ var _ = Describe("GroupsService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.banana"}, []string{"scim"})
+			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
 			err := service.Delete(group.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
