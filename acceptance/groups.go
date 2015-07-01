@@ -22,7 +22,15 @@ var _ = Describe("Groups", func() {
 		})
 	})
 
-	It("creates, retrieves, and deletes a group", func() {
+	AfterEach(func() {
+		err = client.Groups.Delete(group.ID, UAAToken)
+		Expect(err).NotTo(HaveOccurred())
+
+		_, err = client.Groups.Get(group.ID, UAAToken)
+		Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+	})
+
+	It("creates, lists, retrieves, and deletes a group", func() {
 		By("creating a new group", func() {
 			group, err = client.Groups.Create("banana.read", UAAToken)
 			Expect(err).NotTo(HaveOccurred())
@@ -31,20 +39,18 @@ var _ = Describe("Groups", func() {
 			Expect(group.DisplayName).To(Equal("banana.read"))
 		})
 
+		By("listing the groups", func() {
+			groups, err := client.Groups.List(UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(groups).To(ContainElement(group))
+		})
+
 		By("getting the created group", func() {
 			group, err = client.Groups.Get(group.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(group.ID).NotTo(BeEmpty())
 			Expect(group.DisplayName).To(Equal("banana.read"))
-		})
-
-		By("deleting the created group", func() {
-			err = client.Groups.Delete(group.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = client.Groups.Get(group.ID, UAAToken)
-			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 	})
 })

@@ -63,6 +63,31 @@ func (gs GroupsService) Get(id, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
+func (gs GroupsService) List(token string) ([]Group, error) {
+	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:                "GET",
+		Path:                  "/Groups",
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return []Group{}, translateError(err)
+	}
+
+	var response documents.GroupListResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return []Group{}, MalformedResponseError{err}
+	}
+
+	var groupList []Group
+	for _, groupResponse := range response.Resources {
+		groupList = append(groupList, newGroupFromResponse(gs.config, groupResponse))
+	}
+
+	return groupList, err
+}
+
 func (gs GroupsService) Delete(id, token string) error {
 	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "DELETE",

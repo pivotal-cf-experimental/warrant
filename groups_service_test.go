@@ -164,4 +164,50 @@ var _ = Describe("GroupsService", func() {
 			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 		})
 	})
+
+	Describe("List", func() {
+		It("retrieves a list of all the groups", func() {
+			writeGroup, err := service.Create("banana.write", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			readGroup, err := service.Create("banana.read", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			groups, err := service.List(token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(groups).To(HaveLen(2))
+			Expect(groups).To(ConsistOf(writeGroup, readGroup))
+		})
+
+		Context("failure cases", func() {
+			It("returns an error when the server does not respond validly", func() {
+				erroringServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.WriteHeader(http.StatusInternalServerError)
+				}))
+				service = warrant.NewGroupsService(warrant.Config{
+					Host:          erroringServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.List(token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
+			})
+
+			It("returns an error when the JSON is malformed", func() {
+				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Write([]byte("this is not JSON"))
+				}))
+				service = warrant.NewGroupsService(warrant.Config{
+					Host:          malformedJSONServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.List(token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
+				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
+			})
+		})
+	})
 })

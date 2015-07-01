@@ -67,6 +67,7 @@ func NewUAAServer(config ServerConfig) *UAAServer {
 	router.HandleFunc("/token_key", server.GetTokenKey).Methods("GET")
 
 	router.HandleFunc("/Groups", server.CreateGroup).Methods("POST")
+	router.HandleFunc("/Groups", server.ListGroups).Methods("GET")
 	router.HandleFunc("/Groups/{guid}", server.GetGroup).Methods("GET")
 	router.HandleFunc("/Groups/{guid}", server.DeleteGroup).Methods("DELETE")
 

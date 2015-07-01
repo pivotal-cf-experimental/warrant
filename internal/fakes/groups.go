@@ -23,6 +23,15 @@ func (g Groups) Get(id string) (Group, bool) {
 	return group, ok
 }
 
+func (g Groups) All() []Group {
+	var groups []Group
+	for _, group := range g.store {
+		groups = append(groups, group)
+	}
+
+	return groups
+}
+
 func (g Groups) Delete(id string) bool {
 	_, ok := g.store[id]
 	delete(g.store, id)
