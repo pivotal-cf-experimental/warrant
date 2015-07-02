@@ -40,7 +40,7 @@ var _ = Describe("Groups", func() {
 		})
 
 		By("listing the groups", func() {
-			groups, err := client.Groups.List(UAAToken)
+			groups, err := client.Groups.List(warrant.Query{}, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(groups).To(ContainElement(group))
 		})
