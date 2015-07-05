@@ -11,26 +11,33 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
+// Query is a representation of a search query used to list resources.
+type Query struct {
+	// Filter is a string representation of a filtering expression as specified in the SCIM spec.
+	Filter string
+}
+
 // TODO: Score password strength
 // TODO: Verify a user
 // TODO: Query for user info
 // TODO: Convert user ids to names
 // TODO: Pagination for List
 
-const Schema = "urn:scim:schemas:core:1.0"
-
-var Schemas = []string{Schema}
-
+// UsersService provides access to common user actions. Using this service, you can create, fetch,
+// update, delete, and list users. You can also change and set their passwords, and fetch their tokens.
 type UsersService struct {
 	config Config
 }
 
+// NewUsersService returns a UsersService initialized with the given Config.
 func NewUsersService(config Config) UsersService {
 	return UsersService{
 		config: config,
 	}
 }
 
+// Create will make a request to UAA to create a new user resource with the given username and email.
+// A token with the "scim.write" scope is required.
 func (us UsersService) Create(username, email, token string) (User, error) {
 	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "POST",
@@ -57,6 +64,8 @@ func (us UsersService) Create(username, email, token string) (User, error) {
 	return newUserFromResponse(us.config, response), nil
 }
 
+// Get will make a request to UAA to fetch the user with the matching id.
+// A token with the "scim.read" scope is required.
 func (us UsersService) Get(id, token string) (User, error) {
 	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:                "GET",
@@ -77,6 +86,8 @@ func (us UsersService) Get(id, token string) (User, error) {
 	return newUserFromResponse(us.config, response), nil
 }
 
+// Delete will make a request to UAA to delete the user resource with the matching id.
+// A token with the "scim.write" scope is required.
 func (us UsersService) Delete(id, token string) error {
 	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:                "DELETE",
@@ -91,6 +102,8 @@ func (us UsersService) Delete(id, token string) error {
 	return nil
 }
 
+// Update will make a request to UAA to update the matching user resource.
+// A token with the "scim.write" scope is required.
 func (us UsersService) Update(user User, token string) (User, error) {
 	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
@@ -113,6 +126,8 @@ func (us UsersService) Update(user User, token string) (User, error) {
 	return newUserFromResponse(us.config, response), nil
 }
 
+// SetPassword will make a request to UAA to set the password for the user with the matching id to the
+// given password value. A token with the "password.write" scope is required.
 func (us UsersService) SetPassword(id, password, token string) error {
 	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
@@ -130,6 +145,9 @@ func (us UsersService) SetPassword(id, password, token string) error {
 	return nil
 }
 
+// ChangePassword will make a request to UAA to change the password for the user with the matching id
+// to the given password value. The existing password for the user resource as well as a token for the
+// user is required.
 func (us UsersService) ChangePassword(id, oldPassword, password, token string) error {
 	_, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
@@ -148,6 +166,8 @@ func (us UsersService) ChangePassword(id, oldPassword, password, token string) e
 	return nil
 }
 
+// GetToken will make a request to UAA to retrieve the token for the user matching the given username.
+// The user's password is required.
 func (us UsersService) GetToken(username, password string) (string, error) {
 	query := url.Values{
 		"client_id":     []string{"cf"},
@@ -189,10 +209,8 @@ func (us UsersService) GetToken(username, password string) (string, error) {
 	return locationQuery.Get("access_token"), nil
 }
 
-type Query struct {
-	Filter string
-}
-
+// List will make a request to UAA to retrieve all user resources matching the given query.
+// A token with the "scim.read" scope is required.
 func (us UsersService) List(query Query, token string) ([]User, error) {
 	requestPath := url.URL{
 		Path: "/Users",
@@ -234,7 +252,7 @@ func newUpdateUserDocumentFromUser(user User) documents.UpdateUserRequest {
 	}
 
 	return documents.UpdateUserRequest{
-		Schemas:    Schemas,
+		Schemas:    schemas,
 		ID:         user.ID,
 		UserName:   user.UserName,
 		ExternalID: user.ExternalID,

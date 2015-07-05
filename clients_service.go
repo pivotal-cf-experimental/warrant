@@ -5,37 +5,32 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
-type Client struct {
-	ID                   string
-	Scope                []string
-	ResourceIDs          []string
-	Authorities          []string
-	AuthorizedGrantTypes []string
-	AccessTokenValidity  time.Duration
-}
-
+// ClientsService provides access to the common client actions. Using this service, you can
+// create, delete, or fetch a client. You can also fetch a client token.
 type ClientsService struct {
 	config Config
 }
 
+// NewClientsService returns a ClientsService initialized with the given Config.
 func NewClientsService(config Config) ClientsService {
 	return ClientsService{
 		config: config,
 	}
 }
 
+// Create will make a request to UAA to register a client with the given client resource and
+// secret. A token with the "clients.write" scope is required.
 func (cs ClientsService) Create(client Client, secret, token string) error {
 	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          "/oauth/clients",
 		Authorization: network.NewTokenAuthorization(token),
-		Body:          network.NewJSONRequestBody(client.ToDocument(secret)),
+		Body:          network.NewJSONRequestBody(client.toDocument(secret)),
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
@@ -45,6 +40,8 @@ func (cs ClientsService) Create(client Client, secret, token string) error {
 	return nil
 }
 
+// Get will make a request to UAA to fetch the client matching the given id.
+// A token with the "clients.read" scope is required.
 func (cs ClientsService) Get(id, token string) (Client, error) {
 	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:                "GET",
@@ -65,6 +62,8 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 	return newClientFromDocument(document), nil
 }
 
+// Delete will make a request to UAA to delete the client matching the given id.
+// A token with the "clients.write" scope is required.
 func (cs ClientsService) Delete(id, token string) error {
 	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:                "DELETE",
@@ -79,6 +78,8 @@ func (cs ClientsService) Delete(id, token string) error {
 	return nil
 }
 
+// GetToken will make a request to UAA to retrieve a client token using the
+// "client_credentials" grant type. A client id and secret are required.
 func (cs ClientsService) GetToken(id, secret string) (string, error) {
 	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",
@@ -101,33 +102,4 @@ func (cs ClientsService) GetToken(id, secret string) (string, error) {
 	}
 
 	return response.AccessToken, nil
-}
-
-func newClientFromDocument(document documents.ClientResponse) Client {
-	return Client{
-		ID:                   document.ClientID,
-		Scope:                document.Scope,
-		ResourceIDs:          document.ResourceIDs,
-		Authorities:          document.Authorities,
-		AuthorizedGrantTypes: document.AuthorizedGrantTypes,
-		AccessTokenValidity:  time.Duration(document.AccessTokenValidity) * time.Second,
-	}
-}
-
-func (c Client) ToDocument(secret string) documents.CreateClientRequest {
-	client := documents.CreateClientRequest{
-		ClientID:             c.ID,
-		ClientSecret:         secret,
-		AccessTokenValidity:  int(c.AccessTokenValidity.Seconds()),
-		Scope:                make([]string, 0),
-		ResourceIDs:          make([]string, 0),
-		Authorities:          make([]string, 0),
-		AuthorizedGrantTypes: make([]string, 0),
-	}
-	client.Scope = append(client.Scope, c.Scope...)
-	client.ResourceIDs = append(client.ResourceIDs, c.ResourceIDs...)
-	client.Authorities = append(client.Authorities, c.Authorities...)
-	client.AuthorizedGrantTypes = append(client.AuthorizedGrantTypes, c.AuthorizedGrantTypes...)
-
-	return client
 }

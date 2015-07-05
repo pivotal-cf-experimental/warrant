@@ -11,16 +11,21 @@ import (
 
 // TODO: Pagination for List
 
+// GroupsService provides access to common group actions. Using this service,
+// you can create, delete, fetch and list group resources.
 type GroupsService struct {
 	config Config
 }
 
+// NewGroupsService returns a GroupsService initialized with the given Config.
 func NewGroupsService(config Config) GroupsService {
 	return GroupsService{
 		config: config,
 	}
 }
 
+// Create will make a request to UAA to create a new group resource with the given
+// DisplayName. A token with the "scim.write" scope is required.
 func (gs GroupsService) Create(displayName, token string) (Group, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:        "POST",
@@ -28,7 +33,7 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 		Authorization: network.NewTokenAuthorization(token),
 		Body: network.NewJSONRequestBody(documents.CreateGroupRequest{
 			DisplayName: displayName,
-			Schemas:     Schemas,
+			Schemas:     schemas,
 		}),
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
@@ -45,6 +50,8 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
+// Get will make a request to UAA to fetch the group resource with the matching id.
+// A token with the "scim.read" scope is required.
 func (gs GroupsService) Get(id, token string) (Group, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
@@ -65,6 +72,8 @@ func (gs GroupsService) Get(id, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
+// List wil make a request to UAA to list the groups that match the given Query.
+// A token with the "scim.read" scope is required.
 func (gs GroupsService) List(query Query, token string) ([]Group, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
@@ -90,6 +99,8 @@ func (gs GroupsService) List(query Query, token string) ([]Group, error) {
 	return groupList, err
 }
 
+// Delete will make a request to UAA to delete the group resource with the matching id.
+// A token with the "scim.write" scope is required.
 func (gs GroupsService) Delete(id, token string) error {
 	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "DELETE",

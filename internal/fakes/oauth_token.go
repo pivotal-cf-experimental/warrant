@@ -9,6 +9,7 @@ import (
 )
 
 func (s *UAAServer) OAuthToken(w http.ResponseWriter, req *http.Request) {
+	// TODO: actually check the basic auth values
 	_, _, ok := req.BasicAuth()
 	if !ok {
 		s.Error(w, http.StatusUnauthorized, "An Authentication object was not found in the SecurityContext", "unauthorized")
@@ -21,11 +22,11 @@ func (s *UAAServer) OAuthToken(w http.ResponseWriter, req *http.Request) {
 	}
 	clientID := req.Form.Get("client_id")
 
-	scopes := []string{"scim.write","scim.read","password.write"}
+	scopes := []string{"scim.write", "scim.read", "password.write"}
 	token := s.tokenizer.Encrypt(Token{
 		ClientID:  clientID,
 		Scopes:    scopes,
-		Audiences: []string{"scim","password"},
+		Audiences: []string{"scim", "password"},
 	})
 
 	response, err := json.Marshal(documents.TokenResponse{

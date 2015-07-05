@@ -11,14 +11,18 @@ import (
 )
 
 var _ = Describe("TokensService", func() {
-	var service warrant.TokensService
+	var (
+		service warrant.TokensService
+		config  warrant.Config
+	)
 
 	BeforeEach(func() {
-		service = warrant.NewTokensService(warrant.Config{
+		config = warrant.Config{
 			Host:          fakeUAAServer.URL(),
 			SkipVerifySSL: true,
 			TraceWriter:   TraceWriter,
-		})
+		}
+		service = warrant.NewTokensService(config)
 	})
 
 	Describe("Decode", func() {
