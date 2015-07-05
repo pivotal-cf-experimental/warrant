@@ -43,36 +43,10 @@ func (c Client) MakeRequest(req Request) (Response, error) {
 		panic("acceptable status codes for this request were not set")
 	}
 
-	var bodyReader io.Reader
-	var contentType string
-	if req.Body != nil {
-		var err error
-		bodyReader, contentType, err = req.Body.Encode()
-		if err != nil {
-			return Response{}, newRequestBodyMarshalError(err)
-		}
-	}
-
-	requestURL := c.config.Host + req.Path
-	request, err := http.NewRequest(req.Method, requestURL, bodyReader)
+	request, err := c.buildRequest(req)
 	if err != nil {
-		return Response{}, newRequestConfigurationError(err)
+		return Response{}, err
 	}
-
-	if req.Authorization != nil {
-		request.Header.Set("Authorization", req.Authorization.Authorization())
-	}
-
-	request.Header.Set("Accept", "application/json")
-
-	if contentType != "" {
-		request.Header.Set("Content-Type", contentType)
-	}
-	if req.IfMatch != "" {
-		request.Header.Set("If-Match", req.IfMatch)
-	}
-
-	c.printRequest(request)
 
 	var resp *http.Response
 	transport := buildTransport(c.config.SkipVerifySSL)
@@ -92,26 +66,64 @@ func (c Client) MakeRequest(req Request) (Response, error) {
 		return Response{}, newResponseReadError(err)
 	}
 
-	parsedResponse := Response{
+	return c.handleResponse(req, Response{
 		Code:    resp.StatusCode,
 		Body:    responseBody,
 		Headers: resp.Header,
-	}
-	c.printResponse(parsedResponse)
+	})
+}
 
-	if resp.StatusCode == http.StatusNotFound {
-		return Response{}, newNotFoundError(responseBody)
-	}
-
-	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-		return Response{}, newUnauthorizedError(responseBody)
-	}
-
-	for _, acceptableCode := range req.AcceptableStatusCodes {
-		if resp.StatusCode == acceptableCode {
-			return parsedResponse, nil
+func (c Client) buildRequest(req Request) (*http.Request, error) {
+	var bodyReader io.Reader
+	var contentType string
+	if req.Body != nil {
+		var err error
+		bodyReader, contentType, err = req.Body.Encode()
+		if err != nil {
+			return &http.Request{}, newRequestBodyMarshalError(err)
 		}
 	}
 
-	return Response{}, newUnexpectedStatusError(resp.StatusCode, responseBody)
+	requestURL := c.config.Host + req.Path
+	request, err := http.NewRequest(req.Method, requestURL, bodyReader)
+	if err != nil {
+		return &http.Request{}, newRequestConfigurationError(err)
+	}
+
+	if req.Authorization != nil {
+		request.Header.Set("Authorization", req.Authorization.Authorization())
+	}
+
+	request.Header.Set("Accept", "application/json")
+
+	if contentType != "" {
+		request.Header.Set("Content-Type", contentType)
+	}
+	if req.IfMatch != "" {
+		request.Header.Set("If-Match", req.IfMatch)
+	}
+
+	c.printRequest(request)
+
+	return request, nil
+}
+
+func (c Client) handleResponse(request Request, response Response) (Response, error) {
+	c.printResponse(response)
+
+	if response.Code == http.StatusNotFound {
+		return Response{}, newNotFoundError(response.Body)
+	}
+
+	if response.Code == http.StatusUnauthorized || response.Code == http.StatusForbidden {
+		return Response{}, newUnauthorizedError(response.Body)
+	}
+
+	for _, acceptableCode := range request.AcceptableStatusCodes {
+		if response.Code == acceptableCode {
+			return response, nil
+		}
+	}
+
+	return Response{}, newUnexpectedStatusError(response.Code, response.Body)
 }
