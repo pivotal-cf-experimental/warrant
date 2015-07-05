@@ -2,7 +2,10 @@
 Warrant provides a library of functionality for interacting with the UAA service.
 The library supports management of users, clients, groups and tokens.
 
-Example
+## Caveat Emptor
+Warrant is still under development and the APIs shown herein are subject to change.
+
+## Example
 
 Warrant can be used in a variety of ways. Here is a simple example to get you started:
 
