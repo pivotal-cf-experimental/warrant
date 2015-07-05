@@ -14,8 +14,8 @@ type GroupResponse struct {
 
 type GroupListResponse struct {
 	Resources    []GroupResponse `json:"resources"`
-	StartIndex   int            `json:"startIndex"`
-	ItemsPerPage int            `json:"itemsPerPage"`
-	TotalResults int            `json:"totalResults"`
-	Schemas      []string       `json:"schemas"`
+	StartIndex   int             `json:"startIndex"`
+	ItemsPerPage int             `json:"itemsPerPage"`
+	TotalResults int             `json:"totalResults"`
+	Schemas      []string        `json:"schemas"`
 }

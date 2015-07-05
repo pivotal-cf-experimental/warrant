@@ -81,7 +81,7 @@ func (u User) ToDocument() documents.UserResponse {
 	}
 
 	var groups []documents.Group
-	for _ = range u.Groups {
+	for i := 0; i < len(u.Groups); i++ {
 		groups = append(groups, documents.Group{})
 	}
 
