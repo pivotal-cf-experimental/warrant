@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) oAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 	if req.Header.Get("Accept") != "application/json" {
 		w.Header().Set("Location", fmt.Sprintf("%s/login", s.URL()))
 		w.WriteHeader(http.StatusFound)
@@ -33,7 +33,7 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	userName := req.Form.Get("username")
 
-	user, ok := s.users.GetByName(userName)
+	user, ok := s.users.getByName(userName)
 	if !ok {
 		s.Error(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", userName), "scim_resource_not_found")
 		return
@@ -53,7 +53,7 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 
 	scopes := strings.Join(s.defaultScopes, " ")
 
-	token := s.tokenizer.Encrypt(Token{
+	t := s.tokenizer.encrypt(token{
 		UserID:    user.ID,
 		Scopes:    s.defaultScopes,
 		Audiences: []string{},
@@ -63,7 +63,7 @@ func (s *UAAServer) OAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 
 	query := url.Values{
 		"token_type":   []string{"bearer"},
-		"access_token": []string{token},
+		"access_token": []string{t},
 		"expires_in":   []string{"599"},
 		"scope":        []string{scopes},
 		"jti":          []string{"ad0efc96-ed29-43ef-be75-85a4b4f105b5"},

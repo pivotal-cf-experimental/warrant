@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -10,24 +10,24 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-type UsersList []User
+type usersList []user
 
-func (ul UsersList) ToDocument() documents.UserListResponse {
+func (ul usersList) toDocument() documents.UserListResponse {
 	doc := documents.UserListResponse{
 		ItemsPerPage: 100,
 		StartIndex:   1,
 		TotalResults: len(ul),
-		Schemas:      Schemas,
+		Schemas:      schemas,
 	}
 
 	for _, user := range ul {
-		doc.Resources = append(doc.Resources, user.ToDocument())
+		doc.Resources = append(doc.Resources, user.toDocument())
 	}
 
 	return doc
 }
 
-func (s *UAAServer) FindUsers(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) findUsers(w http.ResponseWriter, req *http.Request) {
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
 		panic(err)
@@ -49,11 +49,11 @@ func (s *UAAServer) FindUsers(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user, _ := s.users.Get(value)
+	user, _ := s.users.get(value)
 
-	list := UsersList{user}
+	list := usersList{user}
 
-	response, err := json.Marshal(list.ToDocument())
+	response, err := json.Marshal(list.toDocument())
 	if err != nil {
 		panic(err)
 	}

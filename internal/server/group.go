@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-type Group struct {
+type group struct {
 	ID          string
 	DisplayName string
 	CreatedAt   time.Time
@@ -14,10 +14,10 @@ type Group struct {
 	Version     int
 }
 
-func newGroupFromCreateDocument(document documents.CreateGroupRequest) Group {
+func newGroupFromCreateDocument(document documents.CreateGroupRequest) group {
 	now := time.Now().UTC()
-	return Group{
-		ID:          GenerateID(),
+	return group{
+		ID:          generateID(),
 		DisplayName: document.DisplayName,
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -25,9 +25,9 @@ func newGroupFromCreateDocument(document documents.CreateGroupRequest) Group {
 	}
 }
 
-func (g Group) ToDocument() documents.GroupResponse {
+func (g group) toDocument() documents.GroupResponse {
 	return documents.GroupResponse{
-		Schemas:     Schemas,
+		Schemas:     schemas,
 		ID:          g.ID,
 		DisplayName: g.DisplayName,
 		Meta: documents.Meta{

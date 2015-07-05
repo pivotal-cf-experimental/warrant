@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) OAuthToken(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) oAuthToken(w http.ResponseWriter, req *http.Request) {
 	// TODO: actually check the basic auth values
 	_, _, ok := req.BasicAuth()
 	if !ok {
@@ -23,18 +23,18 @@ func (s *UAAServer) OAuthToken(w http.ResponseWriter, req *http.Request) {
 	clientID := req.Form.Get("client_id")
 
 	scopes := []string{"scim.write", "scim.read", "password.write"}
-	token := s.tokenizer.Encrypt(Token{
+	t := s.tokenizer.encrypt(token{
 		ClientID:  clientID,
 		Scopes:    scopes,
 		Audiences: []string{"scim", "password"},
 	})
 
 	response, err := json.Marshal(documents.TokenResponse{
-		AccessToken: token,
+		AccessToken: t,
 		TokenType:   "bearer",
 		ExpiresIn:   5000,
 		Scope:       strings.Join(scopes, " "),
-		JTI:         GenerateID(),
+		JTI:         generateID(),
 	})
 
 	w.Write(response)

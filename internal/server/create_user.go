@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) CreateUser(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) createUser(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
@@ -37,19 +37,19 @@ func (s *UAAServer) CreateUser(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	if _, ok := s.users.GetByName(document.UserName); ok {
+	if _, ok := s.users.getByName(document.UserName); ok {
 		s.Error(w, http.StatusConflict, fmt.Sprintf("Username already in use: %s", document.UserName), "scim_resource_already_exists")
 		return
 	}
 
 	user := newUserFromCreateDocument(document)
-	if err := user.Validate(); err != nil {
+	if err := user.validate(); err != nil {
 		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
 		return
 	}
-	s.users.Add(user)
+	s.users.add(user)
 
-	response, err := json.Marshal(user.ToDocument())
+	response, err := json.Marshal(user.toDocument())
 	if err != nil {
 		panic(err)
 	}

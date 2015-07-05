@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -9,12 +9,12 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) UpdateUserPassword(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) updateUserPassword(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	matches := regexp.MustCompile(`/Users/(.*)/password$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	user, ok := s.users.Get(id)
+	user, ok := s.users.get(id)
 	if !ok {
 		s.Error(w, http.StatusUnauthorized, "Not authorized", "access_denied")
 		return
@@ -32,7 +32,7 @@ func (s *UAAServer) UpdateUserPassword(w http.ResponseWriter, req *http.Request)
 	}
 
 	user.Password = document.Password
-	s.users.Update(user)
+	s.users.update(user)
 }
 
 func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
@@ -40,8 +40,8 @@ func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword,
 		return true
 	}
 
-	token := s.tokenizer.Decrypt(tokenHeader)
-	if token.UserID == userID && existingPassword == givenPassword {
+	t := s.tokenizer.decrypt(tokenHeader)
+	if t.UserID == userID && existingPassword == givenPassword {
 		return true
 	}
 

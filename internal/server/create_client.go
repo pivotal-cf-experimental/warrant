@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) CreateClient(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) createClient(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"clients"}, []string{"clients.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
@@ -22,14 +22,14 @@ func (s *UAAServer) CreateClient(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := newClientFromDocument(document)
-	if err := client.Validate(); err != nil {
+	if err := client.validate(); err != nil {
 		s.Error(w, http.StatusBadRequest, err.Error(), "invalid_client")
 		return
 	}
 
-	s.clients.Add(client)
+	s.clients.add(client)
 
-	response, err := json.Marshal(client.ToDocument())
+	response, err := json.Marshal(client.toDocument())
 	if err != nil {
 		panic(err)
 	}

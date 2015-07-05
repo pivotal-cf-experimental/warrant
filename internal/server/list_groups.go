@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -7,26 +7,26 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-type GroupsList []Group
+type groupsList []group
 
-func (gl GroupsList) ToDocument() documents.GroupListResponse {
+func (gl groupsList) toDocument() documents.GroupListResponse {
 	doc := documents.GroupListResponse{
 		ItemsPerPage: 100,
 		StartIndex:   1,
 		TotalResults: len(gl),
-		Schemas:      Schemas,
+		Schemas:      schemas,
 	}
 
 	for _, group := range gl {
-		doc.Resources = append(doc.Resources, group.ToDocument())
+		doc.Resources = append(doc.Resources, group.toDocument())
 	}
 
 	return doc
 }
-func (s *UAAServer) ListGroups(w http.ResponseWriter, req *http.Request) {
-	list := GroupsList(s.groups.All())
+func (s *UAAServer) listGroups(w http.ResponseWriter, req *http.Request) {
+	list := groupsList(s.groups.all())
 
-	response, err := json.Marshal(list.ToDocument())
+	response, err := json.Marshal(list.toDocument())
 	if err != nil {
 		panic(err)
 	}

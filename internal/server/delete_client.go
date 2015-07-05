@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) DeleteClient(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) deleteClient(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if len(token) == 0 {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
@@ -21,7 +21,7 @@ func (s *UAAServer) DeleteClient(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/oauth/clients/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	if ok := s.clients.Delete(id); !ok {
+	if ok := s.clients.delete(id); !ok {
 		panic("foo")
 	}
 

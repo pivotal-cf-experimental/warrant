@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) CreateGroup(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) createGroup(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
@@ -28,15 +28,15 @@ func (s *UAAServer) CreateGroup(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	if _, ok := s.groups.GetByName(document.DisplayName); ok {
+	if _, ok := s.groups.getByName(document.DisplayName); ok {
 		s.Error(w, http.StatusConflict, fmt.Sprintf("A group with displayName: %s already exists.", document.DisplayName), "scim_resource_already_exists")
 		return
 	}
 
 	group := newGroupFromCreateDocument(document)
-	s.groups.Add(group)
+	s.groups.add(group)
 
-	response, err := json.Marshal(group.ToDocument())
+	response, err := json.Marshal(group.toDocument())
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) UpdateUser(w http.ResponseWriter, req *http.Request) {
+func (s *UAAServer) updateUser(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
@@ -44,7 +44,7 @@ func (s *UAAServer) UpdateUser(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/Users/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	existingUser, ok := s.users.Get(id)
+	existingUser, ok := s.users.get(id)
 	if !ok {
 		s.Error(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", user.ID), "scim_resource_not_found")
 		return
@@ -56,9 +56,9 @@ func (s *UAAServer) UpdateUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	s.users.Update(user)
+	s.users.update(user)
 
-	response, err := json.Marshal(user.ToDocument())
+	response, err := json.Marshal(user.toDocument())
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"fmt"
@@ -10,4 +10,10 @@ func (s *UAAServer) Error(w http.ResponseWriter, status int, message, errorType 
 
 	w.WriteHeader(status)
 	w.Write([]byte(output))
+}
+
+type validationError string
+
+func (e validationError) Error() string {
+	return string(e)
 }

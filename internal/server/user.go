@@ -1,13 +1,12 @@
-package fakes
+package server
 
 import (
-	"errors"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-type User struct {
+type user struct {
 	ID            string
 	ExternalID    string
 	UserName      string
@@ -19,41 +18,41 @@ type User struct {
 	UpdatedAt     time.Time
 	Version       int
 	Emails        []string
-	Groups        []Group
+	Groups        []group
 	Active        bool
 	Verified      bool
 	Origin        string
 	Password      string
 }
 
-func newUserFromCreateDocument(request documents.CreateUserRequest) User {
+func newUserFromCreateDocument(request documents.CreateUserRequest) user {
 	var emails []string
 	for _, email := range request.Emails {
 		emails = append(emails, email.Value)
 	}
 
 	now := time.Now().UTC()
-	return User{
-		ID:        GenerateID(),
+	return user{
+		ID:        generateID(),
 		UserName:  request.UserName,
 		CreatedAt: now,
 		UpdatedAt: now,
 		Version:   0,
 		Emails:    emails,
-		Groups:    make([]Group, 0),
+		Groups:    make([]group, 0),
 		Active:    true,
 		Verified:  false,
-		Origin:    Origin,
+		Origin:    origin,
 	}
 }
 
-func newUserFromUpdateDocument(request documents.UpdateUserRequest) User {
+func newUserFromUpdateDocument(request documents.UpdateUserRequest) user {
 	var emails []string
 	for _, email := range request.Emails {
 		emails = append(emails, email.Value)
 	}
 
-	return User{
+	return user{
 		ID:            request.ID,
 		ExternalID:    request.ExternalID,
 		UserName:      request.UserName,
@@ -65,14 +64,14 @@ func newUserFromUpdateDocument(request documents.UpdateUserRequest) User {
 		UpdatedAt:     request.Meta.LastModified,
 		Version:       request.Meta.Version,
 		Emails:        emails,
-		Groups:        make([]Group, 0),
+		Groups:        make([]group, 0),
 		Active:        true,
 		Verified:      false,
-		Origin:        Origin,
+		Origin:        origin,
 	}
 }
 
-func (u User) ToDocument() documents.UserResponse {
+func (u user) toDocument() documents.UserResponse {
 	var emails []documents.Email
 	for _, email := range u.Emails {
 		emails = append(emails, documents.Email{
@@ -86,7 +85,7 @@ func (u User) ToDocument() documents.UserResponse {
 	}
 
 	return documents.UserResponse{
-		Schemas:    Schemas,
+		Schemas:    schemas,
 		ID:         u.ID,
 		ExternalID: u.ExternalID,
 		UserName:   u.UserName,
@@ -109,14 +108,14 @@ func (u User) ToDocument() documents.UserResponse {
 	}
 }
 
-func (u User) Validate() error {
+func (u user) validate() error {
 	if len(u.Emails) == 0 {
-		return errors.New("An email must be provided.")
+		return validationError("An email must be provided.")
 	}
 
 	for _, email := range u.Emails {
 		if email == "" {
-			return errors.New("[Assertion failed] - this String argument must have text; it must not be null, empty, or blank")
+			return validationError("[Assertion failed] - this String argument must have text; it must not be null, empty, or blank")
 		}
 	}
 

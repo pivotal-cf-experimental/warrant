@@ -1,4 +1,4 @@
-package fakes
+package server
 
 import (
 	"errors"
@@ -7,9 +7,9 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-var ValidGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "client_credentials", "password"}
+var validGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "client_credentials", "password"}
 
-type Client struct {
+type client struct {
 	ID                   string
 	Secret               string
 	Scope                []string
@@ -19,8 +19,8 @@ type Client struct {
 	AccessTokenValidity  int
 }
 
-func newClientFromDocument(document documents.CreateClientRequest) Client {
-	return Client{
+func newClientFromDocument(document documents.CreateClientRequest) client {
+	return client{
 		ID:                   document.ClientID,
 		Secret:               document.ClientSecret,
 		Scope:                document.Scope,
@@ -31,7 +31,7 @@ func newClientFromDocument(document documents.CreateClientRequest) Client {
 	}
 }
 
-func (c Client) ToDocument() documents.ClientResponse {
+func (c client) toDocument() documents.ClientResponse {
 	return documents.ClientResponse{
 		ClientID:             c.ID,
 		Scope:                c.Scope,
@@ -42,10 +42,10 @@ func (c Client) ToDocument() documents.ClientResponse {
 	}
 }
 
-func (c Client) Validate() error {
+func (c client) validate() error {
 	for _, grantType := range c.AuthorizedGrantTypes {
-		if !contains(ValidGrantTypes, grantType) {
-			msg := fmt.Sprintf("%s is not an allowed grant type. Must be one of: %v", grantType, ValidGrantTypes)
+		if !contains(validGrantTypes, grantType) {
+			msg := fmt.Sprintf("%s is not an allowed grant type. Must be one of: %v", grantType, validGrantTypes)
 			return errors.New(msg)
 		}
 	}
