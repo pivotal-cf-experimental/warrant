@@ -6,7 +6,7 @@ Example
 
 Warrant can be used in a variety of ways. Here is a simple example to get you started:
 
-```golang
+```go
 package main
 
 import (
