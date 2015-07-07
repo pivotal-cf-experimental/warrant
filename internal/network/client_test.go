@@ -339,7 +339,7 @@ var _ = Describe("Client", func() {
 		})
 
 		Context("when errors occur", func() {
-			It("returns a RequestBodyMarshalError when the request body cannot be marshalled", func() {
+			It("returns a RequestBodyEncodeError when the request body cannot be encoded", func() {
 				requestArgs := network.Request{
 					Method:        "GET",
 					Path:          "/path",
@@ -349,7 +349,7 @@ var _ = Describe("Client", func() {
 				}
 
 				_, err := client.MakeRequest(requestArgs)
-				Expect(err).To(BeAssignableToTypeOf(network.RequestBodyMarshalError{}))
+				Expect(err).To(BeAssignableToTypeOf(network.RequestBodyEncodeError{}))
 			})
 
 			It("returns a RequestConfigurationError when the request params are bad", func() {

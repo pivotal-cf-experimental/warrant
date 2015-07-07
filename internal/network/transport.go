@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+/*
+The purpose of the transports defined herein is to stop a program that
+consumes this package from using up all of the file descriptors provided
+by the operating system. The implementation here ensures that the HTTP
+client for this library will consume, at most, 2 file descriptors, one
+for each transport.
+*/
+
 var _transports map[bool]http.RoundTripper
 
 func init() {

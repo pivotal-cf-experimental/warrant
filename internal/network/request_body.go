@@ -16,6 +16,10 @@ type jsonRequestBody struct {
 	body interface{}
 }
 
+// NewJSONRequestBody returns an object capable of being encoded
+// as JSON within a request body. It will indicate that the
+// consuming request has a Content-Type header value of
+// 'application/json'.
 func NewJSONRequestBody(body interface{}) jsonRequestBody {
 	return jsonRequestBody{
 		body: body,
@@ -30,6 +34,10 @@ func (j jsonRequestBody) Encode() (requestBody io.Reader, contentType string, er
 	return bytes.NewReader(bodyJSON), "application/json", nil
 }
 
+// NewFormRequestBody returns an object capable of being form
+// encoded into a request body. It will indicate that the
+// consuming request has a Content-Type header value of
+// 'application/x-www-form-urlencoded'.
 func NewFormRequestBody(values url.Values) formRequestBody {
 	return formRequestBody(values)
 }
