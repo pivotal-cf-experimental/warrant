@@ -9,33 +9,43 @@ type authorization interface {
 	Authorization() string
 }
 
-// NewTokenAuthorization returns an authorization object capable of
-// providing a Bearer Token authorization header for a request to UAA.
-func NewTokenAuthorization(token string) tokenAuthorization {
+// NewTokenAuthorization returns a TokenAuthorization initialized
+// with the given token value.
+func NewTokenAuthorization(token string) TokenAuthorization {
 	return tokenAuthorization(token)
 }
 
-type tokenAuthorization string
+// TokenAuthorization is an authorization object capable of
+// providing a Bearer Token authorization header for a
+// request to UAA.
+type TokenAuthorization string
 
-func (a tokenAuthorization) Authorization() string {
+// Authorization returns a string that can be used as the value of
+// an Authorization HTTP header.
+func (a TokenAuthorization) Authorization() string {
 	return fmt.Sprintf("Bearer %s", a)
 }
 
-// NewBasicAuthorization returns an authorization object capable of
-// providing a HTTP Basic authorization header for a request to UAA.
-func NewBasicAuthorization(username, password string) basicAuthorization {
+// NewBasicAuthorization returns a BasicAuthorization initialized
+// with the given username and password.
+func NewBasicAuthorization(username, password string) BasicAuthorization {
 	return basicAuthorization{
 		username: username,
 		password: password,
 	}
 }
 
-type basicAuthorization struct {
+// BasicAuthorization is an authorization object capable of
+// providing a HTTP Basic authorization header for a request
+// to UAA.
+type BasicAuthorization struct {
 	username string
 	password string
 }
 
-func (b basicAuthorization) Authorization() string {
+// Authorization returns a string that can be used as the value of
+// an Authorization HTTP header.
+func (b BasicAuthorization) Authorization() string {
 	auth := b.username + ":" + b.password
 	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(auth)))
 }
