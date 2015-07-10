@@ -20,12 +20,12 @@ var _ = Describe("GroupsService", func() {
 
 	BeforeEach(func() {
 		config = warrant.Config{
-			Host:          fakeUAAServer.URL(),
+			Host:          fakeUAA.URL(),
 			SkipVerifySSL: true,
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewGroupsService(config)
-		token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write", "scim.read"}, []string{"scim"})
+		token = fakeUAA.ClientTokenFor("admin", []string{"scim.write", "scim.read"}, []string{"scim"})
 	})
 
 	Describe("Create", func() {
@@ -40,13 +40,13 @@ var _ = Describe("GroupsService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
 			_, err := service.Create("banana.write", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
 			_, err := service.Create("banana.write", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -95,13 +95,13 @@ var _ = Describe("GroupsService", func() {
 		})
 
 		It("requires the scim.read scope", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
 			_, err := service.Get(createdGroup.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
 			_, err := service.Get(createdGroup.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -148,13 +148,13 @@ var _ = Describe("GroupsService", func() {
 		})
 
 		It("requires the scim.write scope", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
 			err := service.Delete(group.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
 			err := service.Delete(group.ID, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})

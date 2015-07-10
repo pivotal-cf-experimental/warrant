@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) oAuthAuthorize(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) oAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 	if req.Header.Get("Accept") != "application/json" {
 		w.Header().Set("Location", fmt.Sprintf("%s/login", s.URL()))
 		w.WriteHeader(http.StatusFound)

@@ -23,7 +23,7 @@ func (gl groupsList) toDocument() documents.GroupListResponse {
 
 	return doc
 }
-func (s *UAAServer) listGroups(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) listGroups(w http.ResponseWriter, req *http.Request) {
 	list := groupsList(s.groups.all())
 
 	response, err := json.Marshal(list.toDocument())

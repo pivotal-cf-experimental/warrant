@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *UAAServer) notFound(w http.ResponseWriter, message string) {
+func (s *UAA) notFound(w http.ResponseWriter, message string) {
 	output := fmt.Sprintf(`{"message":"%s","error":"scim_resource_not_found"}`, message)
 
 	w.WriteHeader(http.StatusNotFound)

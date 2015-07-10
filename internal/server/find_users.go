@@ -27,7 +27,7 @@ func (ul usersList) toDocument() documents.UserListResponse {
 	return doc
 }
 
-func (s *UAAServer) findUsers(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) findUsers(w http.ResponseWriter, req *http.Request) {
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
 		panic(err)

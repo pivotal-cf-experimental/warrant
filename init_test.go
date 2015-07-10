@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	fakeUAAServer    *server.UAAServer
+	fakeUAA          *server.UAA
 	fakeUAAPublicKey string
 	TraceWriter      io.Writer
 )
@@ -37,16 +37,16 @@ jfj9Cw2QICsc5+Pwf21fP+hzf+1WSRHbnYv8uanRO0gZ8ekGaghM/2H6gqJbo2nI
 JwIDAQAB
 -----END PUBLIC KEY-----`
 
-	fakeUAAServer = server.NewUAAServer(server.ServerConfig{
+	fakeUAA = server.NewUAA(server.Config{
 		PublicKey: fakeUAAPublicKey,
 	})
-	fakeUAAServer.Start()
+	fakeUAA.Start()
 })
 
 var _ = AfterSuite(func() {
-	fakeUAAServer.Close()
+	fakeUAA.Close()
 })
 
 var _ = BeforeEach(func() {
-	fakeUAAServer.Reset()
+	fakeUAA.Reset()
 })

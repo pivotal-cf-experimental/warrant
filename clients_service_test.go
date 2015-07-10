@@ -20,12 +20,12 @@ var _ = Describe("ClientsService", func() {
 
 	BeforeEach(func() {
 		config = warrant.Config{
-			Host:          fakeUAAServer.URL(),
+			Host:          fakeUAA.URL(),
 			SkipVerifySSL: true,
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewClientsService(config)
-		token = fakeUAAServer.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})
+		token = fakeUAA.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})
 	})
 
 	Describe("Create/Get", func() {
@@ -156,7 +156,7 @@ var _ = Describe("ClientsService", func() {
 		})
 
 		It("errors when the token is unauthorized", func() {
-			token = fakeUAAServer.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
+			token = fakeUAA.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
 			err := service.Delete(client.ID, token)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))

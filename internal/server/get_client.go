@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) getClient(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) getClient(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"clients"}, []string{"clients.read"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")

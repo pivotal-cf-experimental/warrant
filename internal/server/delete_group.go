@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) deleteGroup(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) deleteGroup(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if ok := s.ValidateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (s *UAAServer) deleteClient(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) deleteClient(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if len(token) == 0 {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")

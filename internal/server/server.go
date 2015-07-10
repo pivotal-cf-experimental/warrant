@@ -14,11 +14,11 @@ const (
 
 var schemas = []string{schema}
 
-type ServerConfig struct {
+type Config struct {
 	PublicKey string
 }
 
-type UAAServer struct {
+type UAA struct {
 	server    *httptest.Server
 	users     *users
 	clients   *clients
@@ -29,9 +29,9 @@ type UAAServer struct {
 	publicKey     string
 }
 
-func NewUAAServer(config ServerConfig) *UAAServer {
+func NewUAA(config Config) *UAA {
 	router := mux.NewRouter()
-	server := &UAAServer{
+	server := &UAA{
 		server: httptest.NewUnstartedServer(router),
 		defaultScopes: []string{
 			"scim.read",
@@ -74,29 +74,29 @@ func NewUAAServer(config ServerConfig) *UAAServer {
 	return server
 }
 
-func (s *UAAServer) Start() {
+func (s *UAA) Start() {
 	s.server.Start()
 }
 
-func (s *UAAServer) Close() {
+func (s *UAA) Close() {
 	s.server.Close()
 }
 
-func (s *UAAServer) Reset() {
+func (s *UAA) Reset() {
 	s.users.clear()
 	s.clients.clear()
 	s.groups.clear()
 }
 
-func (s *UAAServer) URL() string {
+func (s *UAA) URL() string {
 	return s.server.URL
 }
 
-func (s *UAAServer) SetDefaultScopes(scopes []string) {
+func (s *UAA) SetDefaultScopes(scopes []string) {
 	s.defaultScopes = scopes
 }
 
-func (s *UAAServer) ClientTokenFor(clientID string, scopes, audiences []string) string {
+func (s *UAA) ClientTokenFor(clientID string, scopes, audiences []string) string {
 	return s.tokenizer.encrypt(token{
 		ClientID:  clientID,
 		Scopes:    scopes,
@@ -104,7 +104,7 @@ func (s *UAAServer) ClientTokenFor(clientID string, scopes, audiences []string) 
 	})
 }
 
-func (s *UAAServer) UserTokenFor(userID string, scopes, audiences []string) string {
+func (s *UAA) UserTokenFor(userID string, scopes, audiences []string) string {
 	return s.tokenizer.encrypt(token{
 		UserID:    userID,
 		Scopes:    scopes,
@@ -112,7 +112,7 @@ func (s *UAAServer) UserTokenFor(userID string, scopes, audiences []string) stri
 	})
 }
 
-func (s *UAAServer) ValidateToken(encryptedToken string, audiences, scopes []string) bool {
+func (s *UAA) ValidateToken(encryptedToken string, audiences, scopes []string) bool {
 	t := s.tokenizer.decrypt(encryptedToken)
 
 	return s.tokenizer.validate(t, token{

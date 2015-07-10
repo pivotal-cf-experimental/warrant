@@ -18,7 +18,7 @@ var _ = Describe("TokensService", func() {
 
 	BeforeEach(func() {
 		config = warrant.Config{
-			Host:          fakeUAAServer.URL(),
+			Host:          fakeUAA.URL(),
 			SkipVerifySSL: true,
 			TraceWriter:   TraceWriter,
 		}

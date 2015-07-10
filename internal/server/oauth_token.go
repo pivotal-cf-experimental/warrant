@@ -8,7 +8,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) oAuthToken(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) oAuthToken(w http.ResponseWriter, req *http.Request) {
 	// TODO: actually check the basic auth values
 	_, _, ok := req.BasicAuth()
 	if !ok {

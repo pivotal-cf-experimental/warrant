@@ -9,7 +9,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) updateUserPassword(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) updateUserPassword(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	matches := regexp.MustCompile(`/Users/(.*)/password$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
@@ -35,7 +35,7 @@ func (s *UAAServer) updateUserPassword(w http.ResponseWriter, req *http.Request)
 	s.users.update(user)
 }
 
-func (s *UAAServer) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
+func (s *UAA) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
 	if s.ValidateToken(tokenHeader, []string{"password"}, []string{"password.write"}) {
 		return true
 	}

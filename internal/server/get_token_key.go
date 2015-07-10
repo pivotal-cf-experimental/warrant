@@ -7,7 +7,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-func (s *UAAServer) getTokenKey(w http.ResponseWriter, req *http.Request) {
+func (s *UAA) getTokenKey(w http.ResponseWriter, req *http.Request) {
 	response, err := json.Marshal(documents.TokenKeyResponse{
 		Alg:   "SHA256withRSA",
 		Value: s.publicKey,
