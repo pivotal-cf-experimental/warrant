@@ -23,11 +23,29 @@ type TokenResponse struct {
 	JTI string `json:"jti"`
 }
 
+// TokenKeyResponse represents the JSON transport data structure
+// for a response from UAA containing the token signing key.
 type TokenKeyResponse struct {
-	Alg   string `json:"alg"`
+	// Alg is the algorithm that this key is used for.
+	Alg string `json:"alg"`
+
+	// Value is a string representation of the key.
 	Value string `json:"value"`
-	Kty   string `json:"kty"`
-	Use   string `json:"use"`
-	N     string `json:"n"`
-	E     string `json:"e"`
+
+	// Kty identifies the cryptographic algorithm family used with the key.
+	Kty string `json:"kty"`
+
+	// Use identifies the intended use of the public key. Use is employed
+	// to indicate whether a public key is used for encrypting data or
+	// verifying the signature on data.
+	// Values defined by the JWT specification are:
+	// - sig (signature)
+	// - enc (encryption)
+	Use string `json:"use"`
+
+	// N is the public/private modulus for the key.
+	N string `json:"n"`
+
+	// E is the public exponent for the key.
+	E string `json:"e"`
 }

@@ -29,9 +29,12 @@ type GroupResponse struct {
 	Meta Meta `json:"meta"`
 }
 
-// GroupListResponse represents the JSON trantsport data structure
+// GroupListResponse represents the JSON transport data structure
 // for a response containing a list of group resources.
 type GroupListResponse struct {
+	// Schemas is the list of schemas for this API request.
+	Schemas []string `json:"schemas"`
+
 	// Resources is a list of group resources.
 	Resources []GroupResponse `json:"resources"`
 
@@ -46,7 +49,8 @@ type GroupListResponse struct {
 	// TotalResults is the total number of resources that match
 	// the list query.
 	TotalResults int `json:"totalResults"`
-
-	// Schemas is the list of schemas for this API request.
-	Schemas []string `json:"schemas"`
 }
+
+// GroupAssociation represents the JSON transport data structure
+// for a response contains references to associated groups.
+type GroupAssociation struct{}

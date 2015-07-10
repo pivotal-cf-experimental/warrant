@@ -79,9 +79,9 @@ func (u user) toDocument() documents.UserResponse {
 		})
 	}
 
-	var groups []documents.Group
+	var groups []documents.GroupAssociation
 	for i := 0; i < len(u.Groups); i++ {
-		groups = append(groups, documents.Group{})
+		groups = append(groups, documents.GroupAssociation{})
 	}
 
 	return documents.UserResponse{
