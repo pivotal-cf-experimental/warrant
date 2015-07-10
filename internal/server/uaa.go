@@ -43,12 +43,12 @@ func NewUAA(config Config) *UAA {
 	usersCollection := domain.NewUsers()
 	clientsCollection := domain.NewClients()
 	groupsCollection := domain.NewGroups()
-	router := mux.NewRouter()
 
-	router.Handle("/Users{anything:.*}", users.NewRouter(usersCollection, tokensCollection))
-	router.Handle("/Groups{anything:.*}", groups.NewRouter(groupsCollection, tokensCollection))
-	router.Handle("/oauth/clients{anything:.*}", clients.NewRouter(clientsCollection, tokensCollection))
-	router.Handle("/oauth/{anything:.*}", tokens.NewRouter(tokensCollection, usersCollection))
+	router := mux.NewRouter()
+	router.Handle("/Users{a:.*}", users.NewRouter(usersCollection, tokensCollection))
+	router.Handle("/Groups{a:.*}", groups.NewRouter(groupsCollection, tokensCollection))
+	router.Handle("/oauth/clients{a:.*}", clients.NewRouter(clientsCollection, tokensCollection))
+	router.Handle("/oauth{a:.*}", tokens.NewRouter(tokensCollection, usersCollection))
 	router.Handle("/token_key", tokens.NewRouter(tokensCollection, usersCollection))
 
 	return &UAA{
