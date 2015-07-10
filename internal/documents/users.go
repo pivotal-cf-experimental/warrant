@@ -1,6 +1,6 @@
 package documents
 
-// CreateClientRequest represents the JSON transport data structure
+// CreateUserRequest represents the JSON transport data structure
 // for a request to create a User.
 type CreateUserRequest struct {
 	// UserName is the unique identifier for the user resource.
