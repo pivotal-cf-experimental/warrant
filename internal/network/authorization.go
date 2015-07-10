@@ -12,7 +12,7 @@ type authorization interface {
 // NewTokenAuthorization returns a TokenAuthorization initialized
 // with the given token value.
 func NewTokenAuthorization(token string) TokenAuthorization {
-	return tokenAuthorization(token)
+	return TokenAuthorization(token)
 }
 
 // TokenAuthorization is an authorization object capable of
@@ -29,7 +29,7 @@ func (a TokenAuthorization) Authorization() string {
 // NewBasicAuthorization returns a BasicAuthorization initialized
 // with the given username and password.
 func NewBasicAuthorization(username, password string) BasicAuthorization {
-	return basicAuthorization{
+	return BasicAuthorization{
 		username: username,
 		password: password,
 	}
