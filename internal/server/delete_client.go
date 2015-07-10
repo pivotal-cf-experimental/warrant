@@ -13,7 +13,7 @@ func (s *UAA) deleteClient(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ok := s.ValidateToken(token, []string{"clients"}, []string{"clients.write"}); !ok {
+	if ok := s.validateToken(token, []string{"clients"}, []string{"clients.write"}); !ok {
 		s.Error(w, http.StatusForbidden, "Invalid token does not contain resource id (clients)", "access_denied")
 		return
 	}

@@ -36,7 +36,7 @@ func (s *UAA) updateUserPassword(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *UAA) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
-	if s.ValidateToken(tokenHeader, []string{"password"}, []string{"password.write"}) {
+	if s.validateToken(tokenHeader, []string{"password"}, []string{"password.write"}) {
 		return true
 	}
 

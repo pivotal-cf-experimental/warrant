@@ -12,7 +12,7 @@ import (
 
 func (s *UAA) createGroup(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-	if ok := s.ValidateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
+	if ok := s.validateToken(token, []string{"scim"}, []string{"scim.write"}); !ok {
 		s.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
