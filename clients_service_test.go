@@ -1,6 +1,7 @@
 package warrant_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -90,7 +91,7 @@ var _ = Describe("ClientsService", func() {
 		BeforeEach(func() {
 			client = warrant.Client{
 				ID:                   "client-id",
-				Scope:                []string{"openid"},
+				Scope:                []string{"openid", "bananas.eat"},
 				ResourceIDs:          []string{"none"},
 				Authorities:          []string{"scim.read", "scim.write"},
 				AuthorizedGrantTypes: []string{"client_credentials"},
@@ -109,7 +110,11 @@ var _ = Describe("ClientsService", func() {
 			tokensService := warrant.NewTokensService(config)
 			decodedToken, err := tokensService.Decode(clientToken)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(decodedToken.ClientID).To(Equal(client.ID))
+			Expect(decodedToken).To(Equal(warrant.Token{
+				ClientID: client.ID,
+				Scopes:   []string{"openid", "bananas.eat"},
+				Issuer:   fmt.Sprintf("%s/oauth/token", fakeUAA.URL()),
+			}))
 		})
 
 		Context("failure cases", func() {

@@ -45,13 +45,7 @@ func NewUAA(config Config) *UAA {
 	groupsCollection := domain.NewGroups()
 
 	router := mux.NewRouter()
-	router.Handle("/Users{a:.*}", users.NewRouter(usersCollection, tokensCollection))
-	router.Handle("/Groups{a:.*}", groups.NewRouter(groupsCollection, tokensCollection))
-	router.Handle("/oauth/clients{a:.*}", clients.NewRouter(clientsCollection, tokensCollection))
-	router.Handle("/oauth{a:.*}", tokens.NewRouter(tokensCollection, usersCollection))
-	router.Handle("/token_key", tokens.NewRouter(tokensCollection, usersCollection))
-
-	return &UAA{
+	uaa := &UAA{
 		server:    httptest.NewUnstartedServer(router),
 		tokens:    tokensCollection,
 		users:     usersCollection,
@@ -60,6 +54,13 @@ func NewUAA(config Config) *UAA {
 		publicKey: config.PublicKey,
 	}
 
+	router.Handle("/Users{a:.*}", users.NewRouter(usersCollection, tokensCollection))
+	router.Handle("/Groups{a:.*}", groups.NewRouter(groupsCollection, tokensCollection))
+	router.Handle("/oauth/clients{a:.*}", clients.NewRouter(clientsCollection, tokensCollection))
+	router.Handle("/oauth{a:.*}", tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, config.PublicKey, uaa))
+	router.Handle("/token_key", tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, config.PublicKey, uaa))
+
+	return uaa
 }
 
 // Start will cause the HTTP server to bind to a port
