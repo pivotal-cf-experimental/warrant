@@ -29,7 +29,7 @@ var _ = Describe("ClientsService", func() {
 		token = fakeUAA.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})
 	})
 
-	Describe("Create/Get", func() {
+	Describe("Create/Get/Update", func() {
 		var client warrant.Client
 
 		BeforeEach(func() {
@@ -43,13 +43,23 @@ var _ = Describe("ClientsService", func() {
 			}
 		})
 
-		It("an error does not occur and the new client can be fetched", func() {
+		It("can create a new client, retrieve it and update it", func() {
 			err := service.Create(client, "client-secret", token)
 			Expect(err).NotTo(HaveOccurred())
 
 			foundClient, err := service.Get(client.ID, token)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(foundClient).To(Equal(client))
+
+			client.Scope = []string{"bananas.pick", "openid"}
+			client.Authorities = []string{"scim.write"}
+			client.AuthorizedGrantTypes = []string{"authorization_code", "client_credentials"}
+			err = service.Update(client, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedClient, err := service.Get(client.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedClient).To(Equal(client))
 		})
 
 		It("responds with an error when the client cannot be created", func() {
