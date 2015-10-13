@@ -23,12 +23,34 @@ var _ = Describe("Tokens", func() {
 
 	Context("for users", func() {
 		var (
+			client    warrant.Client
 			user      warrant.User
 			userToken string
+			scopes    []string
 		)
+
+		BeforeEach(func() {
+			scopes = []string{"notification_preferences.read", "notification_preferences.write"}
+			client = warrant.Client{
+				ID:                   UAADefaultClientID,
+				Scope:                scopes,
+				ResourceIDs:          []string{""},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"implicit"},
+				AccessTokenValidity:  24 * time.Hour,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          scopes,
+			}
+
+			err := warrantClient.Clients.Create(client, "", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
 		AfterEach(func() {
 			err := warrantClient.Users.Delete(user.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = warrantClient.Clients.Delete(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -46,14 +68,15 @@ var _ = Describe("Tokens", func() {
 
 			By("retrieving a user token", func() {
 				var err error
-				userToken, err = warrantClient.Users.GetToken(UAADefaultUsername, "password")
+				userToken, err = warrantClient.Users.GetToken(UAADefaultUsername, "password", client)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			By("checking that the token belongs to the user", func() {
+			By("checking that the token belongs to the user and has correct scopes", func() {
 				decodedToken, err := warrantClient.Tokens.Decode(userToken)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(decodedToken.UserID).To(Equal(user.ID))
+				Expect(decodedToken.Scopes).To(Equal(scopes))
 			})
 		})
 	})

@@ -26,7 +26,7 @@ var _ = Describe("UsersService", func() {
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewUsersService(config)
-		token = fakeUAA.ClientTokenFor("admin", []string{"scim.write", "scim.read", "password.write"}, []string{"scim", "password"})
+		token = fakeUAA.ClientTokenFor("admin", []string{"scim.write", "scim.read", "password.write", "clients.read", "clients.write"}, []string{"scim", "password", "clients"})
 	})
 
 	Describe("Create", func() {
@@ -347,7 +347,11 @@ var _ = Describe("UsersService", func() {
 	})
 
 	Describe("GetToken", func() {
-		var user warrant.User
+		var (
+			user   warrant.User
+			client warrant.Client
+			scopes []string
+		)
 
 		BeforeEach(func() {
 			var err error
@@ -356,10 +360,26 @@ var _ = Describe("UsersService", func() {
 
 			err = service.SetPassword(user.ID, "password", token)
 			Expect(err).NotTo(HaveOccurred())
+
+			clientsService := warrant.NewClientsService(config)
+
+			scopes = []string{"notification_preferences.read", "notification_preferences.write"}
+			client = warrant.Client{
+				ID:                   "some-client-id",
+				Scope:                scopes,
+				ResourceIDs:          []string{""},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"implicit"},
+				AccessTokenValidity:  24 * time.Hour,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          scopes,
+			}
+			err = clientsService.Create(client, "", token)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns a valid token given a username and password", func() {
-			token, err := service.GetToken("username", "password")
+			token, err := service.GetToken("username", "password", client)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(token).NotTo(BeEmpty())
 
@@ -367,11 +387,12 @@ var _ = Describe("UsersService", func() {
 			decodedToken, err := tokensService.Decode(token)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(decodedToken.UserID).To(Equal(user.ID))
+			Expect(decodedToken.Scopes).To(Equal(scopes))
 		})
 
 		Context("failure cases", func() {
 			It("returns an error when the request does not succeed", func() {
-				_, err := service.GetToken("unknown-user", "password")
+				_, err := service.GetToken("unknown-user", "password", client)
 				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
 			})
 
@@ -384,9 +405,28 @@ var _ = Describe("UsersService", func() {
 				config.Host = server.URL
 				service = warrant.NewUsersService(config)
 
-				_, err := service.GetToken("username", "password")
+				_, err := service.GetToken("username", "password", client)
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError(`malformed response: parse %%%: invalid URL escape "%%%"`))
+			})
+
+			It("returns an error when the autoapprove field does not cover the scopes", func() {
+				clientsService := warrant.NewClientsService(config)
+				client.Autoapprove = []string{}
+
+				err := clientsService.Update(client, token)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.GetToken("username", "password", client)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
+			})
+
+			It("returns an error when the client requesting the token does not exist", func() {
+				client.ID = "missing-client"
+
+				_, err := service.GetToken("username", "password", client)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+				Expect(err).To(MatchError(`Warrant UnauthorizedError: {"message":"No client with requested id: missing-client","error":"invalid_client"}`))
 			})
 		})
 	})

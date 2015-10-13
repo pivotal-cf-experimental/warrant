@@ -23,6 +23,8 @@ var _ = Describe("Client Lifecycle", func() {
 			Authorities:          []string{"scim.read", "scim.write"},
 			AuthorizedGrantTypes: []string{"client_credentials"},
 			AccessTokenValidity:  5000 * time.Second,
+			RedirectURI:          []string{"https://redirect.example.com"},
+			Autoapprove:          []string{},
 		}
 
 		warrantClient = warrant.New(warrant.Config{
@@ -53,12 +55,37 @@ var _ = Describe("Client Lifecycle", func() {
 			client.Scope = []string{"bananas.eat", "openid"}
 			client.Authorities = []string{"scim.read"}
 			client.AuthorizedGrantTypes = []string{"client_credentials", "implicit"}
+			client.RedirectURI = []string{"https://redirect.example.com/sessions/create"}
 
 			err := warrantClient.Clients.Update(client, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		By("retrieving the updated client", func() {
+			fetchedClient, err := warrantClient.Clients.Get(client.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fetchedClient).To(Equal(client))
+		})
+	})
+
+	It("creates clients with implicit grants", func() {
+		client = warrant.Client{
+			ID:                   UAADefaultClientID,
+			Scope:                []string{"openid"},
+			ResourceIDs:          []string{"none"},
+			Authorities:          []string{"scim.read", "scim.write"},
+			AuthorizedGrantTypes: []string{"implicit"},
+			AccessTokenValidity:  5000 * time.Second,
+			RedirectURI:          []string{"https://redirect.example.com"},
+			Autoapprove:          []string{},
+		}
+
+		By("creating a client", func() {
+			err := warrantClient.Clients.Create(client, "", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		By("finding the client", func() {
 			fetchedClient, err := warrantClient.Clients.Get(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedClient).To(Equal(client))

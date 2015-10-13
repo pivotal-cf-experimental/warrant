@@ -35,11 +35,13 @@ var _ = Describe("ClientsService", func() {
 		BeforeEach(func() {
 			client = warrant.Client{
 				ID:                   "client-id",
-				Scope:                []string{"openid"},
+				Scope:                []string{"notification_preferences.read", "openid"},
 				ResourceIDs:          []string{"none"},
 				Authorities:          []string{"scim.read", "scim.write"},
-				AuthorizedGrantTypes: []string{"client_credentials"},
+				AuthorizedGrantTypes: []string{"authorization_code"},
 				AccessTokenValidity:  5000 * time.Second,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          []string{"openid"},
 			}
 		})
 
@@ -54,12 +56,43 @@ var _ = Describe("ClientsService", func() {
 			client.Scope = []string{"bananas.pick", "openid"}
 			client.Authorities = []string{"scim.write"}
 			client.AuthorizedGrantTypes = []string{"authorization_code", "client_credentials"}
+			client.RedirectURI = []string{"https://redirect.example.com/sessions/create"}
+			client.Autoapprove = []string{"notification_preferences.read", "openid"}
 			err = service.Update(client, token)
 			Expect(err).NotTo(HaveOccurred())
 
 			updatedClient, err := service.Get(client.ID, token)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(updatedClient).To(Equal(client))
+		})
+
+		It("can create a new client without a secret", func() {
+			client = warrant.Client{
+				ID:                   "client-id",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"implicit"},
+				AccessTokenValidity:  5000 * time.Second,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          []string{},
+			}
+
+			err := service.Create(client, "", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			foundClient, err := service.Get(client.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(foundClient).To(Equal(client))
+		})
+
+		It("responds with an error when the client includes a redirect_uri without the correct grant types", func() {
+			client.AuthorizedGrantTypes = []string{"client_credentials"}
+			client.RedirectURI = []string{"https://redirect.example.com"}
+
+			err := service.Create(client, "client-secret", token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
+			Expect(err.Error()).To(Equal(`bad request: {"message":"A redirect_uri can only be used by implicit or authorization_code grant types.","error":"invalid_client"}`))
 		})
 
 		It("responds with an error when the client cannot be created", func() {

@@ -9,7 +9,7 @@ func NewRouter(tokens *domain.Tokens, users *domain.Users, clients *domain.Clien
 	router := mux.NewRouter()
 
 	router.Handle("/oauth/token", tokenHandler{clients, urlFinder, publicKey}).Methods("POST")
-	router.Handle("/oauth/authorize", authorizeHandler{tokens, users}).Methods("POST")
+	router.Handle("/oauth/authorize", authorizeHandler{tokens, users, clients}).Methods("POST")
 	router.Handle("/token_key", keyHandler{tokens}).Methods("GET")
 
 	return router
