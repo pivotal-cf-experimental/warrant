@@ -5,6 +5,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 )
 
+
 func NewRouter(tokens *domain.Tokens, users *domain.Users, clients *domain.Clients, publicKey string, urlFinder urlFinder) *mux.Router {
 	router := mux.NewRouter()
 

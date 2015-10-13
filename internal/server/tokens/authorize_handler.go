@@ -56,7 +56,7 @@ func (h authorizeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var scopes []string
+	scopes := []string{}
 	requestedScopes := strings.Split(req.Form.Get("scope"), " ")
 	for _, requestedScope := range requestedScopes {
 		if contains(h.tokens.DefaultScopes, requestedScope) {
