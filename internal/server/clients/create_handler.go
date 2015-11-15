@@ -16,8 +16,17 @@ type createHandler struct {
 }
 
 func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-	if ok := h.tokens.Validate(token, []string{"clients"}, []string{"clients.write"}); !ok {
+	token := req.Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
+	token = strings.TrimPrefix(token, "bearer ")
+	if len(token) == 0 {
+		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		return
+	}
+	if ok := h.tokens.Validate(token, domain.Token{
+		Authorities: []string{"clients.write"},
+		Audiences:   []string{"clients"},
+	}); !ok {
 		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}

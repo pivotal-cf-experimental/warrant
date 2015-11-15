@@ -43,7 +43,10 @@ func (h passwordHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h passwordHandler) canUpdateUserPassword(userID, tokenHeader, existingPassword, givenPassword string) bool {
-	if h.tokens.Validate(tokenHeader, []string{"password"}, []string{"password.write"}) {
+	if h.tokens.Validate(tokenHeader, domain.Token{
+		Audiences:   []string{"password"},
+		Authorities: []string{"password.write"},
+	}) {
 		return true
 	}
 

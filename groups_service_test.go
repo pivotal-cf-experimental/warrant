@@ -58,7 +58,7 @@ var _ = Describe("GroupsService", func() {
 
 				_, err = service.Create("banana.write", token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.DuplicateResourceError{}))
-				Expect(err.Error()).To(Equal("duplicate resource: {\"message\":\"A group with displayName: banana.write already exists.\",\"error\":\"scim_resource_already_exists\"}"))
+				Expect(err.Error()).To(Equal("duplicate resource: {\"error_description\":\"A group with displayName: banana.write already exists.\",\"error\":\"scim_resource_already_exists\"}"))
 			})
 
 			It("returns an error when the json response is malformed", func() {

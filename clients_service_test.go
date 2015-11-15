@@ -92,14 +92,14 @@ var _ = Describe("ClientsService", func() {
 
 			err := service.Create(client, "client-secret", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
-			Expect(err.Error()).To(Equal(`bad request: {"message":"A redirect_uri can only be used by implicit or authorization_code grant types.","error":"invalid_client"}`))
+			Expect(err.Error()).To(Equal(`bad request: {"error_description":"A redirect_uri can only be used by implicit or authorization_code grant types.","error":"invalid_client"}`))
 		})
 
 		It("responds with an error when the client cannot be created", func() {
 			client.AuthorizedGrantTypes = []string{"invalid-grant-type"}
 			err := service.Create(client, "client-secret", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
-			Expect(err.Error()).To(Equal(`bad request: {"message":"invalid-grant-type is not an allowed grant type. Must be one of: [implicit refresh_token authorization_code client_credentials password]","error":"invalid_client"}`))
+			Expect(err.Error()).To(Equal(`bad request: {"error_description":"invalid-grant-type is not an allowed grant type. Must be one of: [implicit refresh_token authorization_code client_credentials password]","error":"invalid_client"}`))
 		})
 
 		It("responds with an error when the client cannot be found", func() {

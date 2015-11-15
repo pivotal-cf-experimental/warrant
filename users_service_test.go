@@ -69,7 +69,7 @@ var _ = Describe("UsersService", func() {
 		It("requires an email address", func() {
 			_, err := service.Create("created-user", "", token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
-			Expect(err.Error()).To(Equal(`bad request: {"message":"[Assertion failed] - this String argument must have text; it must not be null, empty, or blank","error":"invalid_scim_resource"}`))
+			Expect(err.Error()).To(Equal(`bad request: {"error_description":"[Assertion failed] - this String argument must have text; it must not be null, empty, or blank","error":"invalid_scim_resource"}`))
 		})
 
 		Context("failure cases", func() {
@@ -79,7 +79,7 @@ var _ = Describe("UsersService", func() {
 
 				_, err = service.Create("username", "user@example.com", token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.DuplicateResourceError{}))
-				Expect(err.Error()).To(Equal("duplicate resource: {\"message\":\"Username already in use: username\",\"error\":\"scim_resource_already_exists\"}"))
+				Expect(err.Error()).To(Equal("duplicate resource: {\"error_description\":\"Username already in use: username\",\"error\":\"scim_resource_already_exists\"}"))
 			})
 
 			It("returns an error when the json response is malformed", func() {
@@ -240,7 +240,7 @@ var _ = Describe("UsersService", func() {
 			user.Version = 24
 			_, err := service.Update(user, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
-			Expect(err).To(MatchError(`bad request: {"message":"Missing If-Match for PUT","error":"scim"}`))
+			Expect(err).To(MatchError(`bad request: {"error_description":"Missing If-Match for PUT","error":"scim"}`))
 		})
 
 		It("returns an error if the user does not exist", func() {
@@ -426,7 +426,7 @@ var _ = Describe("UsersService", func() {
 
 				_, err := service.GetToken("username", "password", client)
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
-				Expect(err).To(MatchError(`Warrant UnauthorizedError: {"message":"No client with requested id: missing-client","error":"invalid_client"}`))
+				Expect(err).To(MatchError(`Warrant UnauthorizedError: {"error_description":"No client with requested id: missing-client","error":"invalid_client"}`))
 			})
 		})
 	})
@@ -485,7 +485,7 @@ var _ = Describe("UsersService", func() {
 					Filter: fmt.Sprintf("invalid-parameter eq '%s'", user.ID),
 				}, token)
 				Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
-				Expect(err.Error()).To(Equal(`bad request: {"message":"Invalid filter expression: [invalid-parameter eq '` + user.ID + `']","error":"scim"}`))
+				Expect(err.Error()).To(Equal(`bad request: {"error_description":"Invalid filter expression: [invalid-parameter eq '` + user.ID + `']","error":"scim"}`))
 			})
 
 			It("returns an error when the JSON is malformed", func() {

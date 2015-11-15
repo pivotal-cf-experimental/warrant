@@ -21,7 +21,10 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ok := h.tokens.Validate(token, []string{"clients"}, []string{"clients.write"}); !ok {
+	if ok := h.tokens.Validate(token, domain.Token{
+		Authorities: []string{"clients.write"},
+		Audiences:   []string{"clients"},
+	}); !ok {
 		common.Error(w, http.StatusForbidden, "Invalid token does not contain resource id (clients)", "access_denied")
 		return
 	}

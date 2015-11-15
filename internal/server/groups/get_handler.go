@@ -18,7 +18,10 @@ type getHandler struct {
 
 func (h getHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-	if ok := h.tokens.Validate(token, []string{"scim"}, []string{"scim.read"}); !ok {
+	if ok := h.tokens.Validate(token, domain.Token{
+		Audiences:   []string{"scim"},
+		Authorities: []string{"scim.read"},
+	}); !ok {
 		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}

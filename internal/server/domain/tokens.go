@@ -36,16 +36,13 @@ func (t Tokens) Decrypt(encryptedToken string) (Token, error) {
 	return newTokenFromClaims(tok.Claims), nil
 }
 
-func (t Tokens) Validate(encryptedToken string, audiences, scopes []string) bool {
+func (t Tokens) Validate(encryptedToken string, expectedToken Token) bool {
 	decryptedToken, err := t.Decrypt(encryptedToken)
 	if err != nil {
 		return false
 	}
 
-	return t.validate(decryptedToken, Token{
-		Audiences: audiences,
-		Scopes:    scopes,
-	})
+	return t.validate(decryptedToken, expectedToken)
 }
 
 func (t Tokens) validate(tok, expected Token) bool {
@@ -54,6 +51,10 @@ func (t Tokens) validate(tok, expected Token) bool {
 	}
 
 	if ok := tok.hasScopes(expected.Scopes); !ok {
+		return false
+	}
+
+	if ok := tok.hasAuthorities(expected.Authorities); !ok {
 		return false
 	}
 
