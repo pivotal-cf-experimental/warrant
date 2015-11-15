@@ -21,8 +21,15 @@ func (hasURL) URL() string {
 }
 
 var _ = Describe("authorizeHandler", func() {
-	It("returns a valid token when there is no overlap between client and user scopes", func() {
-		recorder := httptest.NewRecorder()
+	var (
+		router           http.Handler
+		recorder         *httptest.ResponseRecorder
+		request          *http.Request
+		tokensCollection *domain.Tokens
+	)
+
+	BeforeEach(func() {
+		recorder = httptest.NewRecorder()
 
 		values := url.Values{
 			"client_id":     {"some-client-id"},
@@ -35,7 +42,8 @@ var _ = Describe("authorizeHandler", func() {
 			RawQuery: values.Encode(),
 		}
 
-		request, err := http.NewRequest("POST", u.String(), strings.NewReader(url.Values{
+		var err error
+		request, err = http.NewRequest("POST", u.String(), strings.NewReader(url.Values{
 			"username": {"some-user"},
 			"password": {"password"},
 			"source":   {"credentials"},
@@ -45,7 +53,7 @@ var _ = Describe("authorizeHandler", func() {
 		request.Header.Set("Accept", "application/json")
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		tokensCollection := domain.NewTokens("", []string{})
+		tokensCollection = domain.NewTokens("", []string{})
 		usersCollection := domain.NewUsers()
 		clientsCollection := domain.NewClients()
 
@@ -64,10 +72,10 @@ var _ = Describe("authorizeHandler", func() {
 		user.Password = "password"
 		usersCollection.Add(user)
 
-		urlFinder := hasURL{}
+		router = tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, "", hasURL{})
+	})
 
-		router := tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, "", urlFinder)
-
+	It("returns a valid token when there is no overlap between client and user scopes", func() {
 		router.ServeHTTP(recorder, request)
 		Expect(recorder.Code).To(Equal(http.StatusFound))
 
