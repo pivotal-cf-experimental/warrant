@@ -9,5 +9,5 @@ import (
 
 func TestDocumentsSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Documents Suite")
+	RunSpecs(t, "internal/documents")
 }

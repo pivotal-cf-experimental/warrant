@@ -9,5 +9,5 @@ import (
 
 func TestDomainSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Domain Suite")
+	RunSpecs(t, "internal/server/domain")
 }

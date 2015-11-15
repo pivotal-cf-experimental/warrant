@@ -13,7 +13,7 @@ var TraceWriter io.Writer
 
 func TestNetworkSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Network Suite")
+	RunSpecs(t, "internal/network")
 }
 
 var _ = BeforeSuite(func() {

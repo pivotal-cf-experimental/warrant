@@ -19,7 +19,7 @@ var (
 
 func TestWarrantSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Warrant Suite")
+	RunSpecs(t, "warrant")
 }
 
 var _ = BeforeSuite(func() {
