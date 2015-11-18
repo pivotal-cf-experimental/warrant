@@ -15,7 +15,10 @@ type deleteHandler struct {
 }
 
 func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
+	token := req.Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
+	token = strings.TrimPrefix(token, "bearer ")
+
 	if len(token) == 0 {
 		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
@@ -32,9 +35,5 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	matches := regexp.MustCompile(`/oauth/clients/(.*)$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
-	if ok := h.clients.Delete(id); !ok {
-		panic("foo")
-	}
-
-	w.WriteHeader(http.StatusOK)
+	h.clients.Delete(id) // TODO: should return a 404 if the client does not exist
 }
