@@ -21,7 +21,7 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Audiences:   []string{"scim"},
 		Authorities: []string{"scim.write"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -29,7 +29,7 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	id := matches[1]
 
 	if ok := h.groups.Delete(id); !ok {
-		common.Error(w, http.StatusNotFound, fmt.Sprintf("Group %s does not exist", id), "scim_resource_not_found")
+		common.JSONError(w, http.StatusNotFound, fmt.Sprintf("Group %s does not exist", id), "scim_resource_not_found")
 		return
 	}
 

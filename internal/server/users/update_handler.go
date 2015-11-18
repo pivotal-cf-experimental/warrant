@@ -25,7 +25,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Audiences:   []string{"scim"},
 		Authorities: []string{"scim.write"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if contentType == "" {
 			contentType = http.DetectContentType(requestBody)
 		}
-		common.Error(w, http.StatusBadRequest, fmt.Sprintf("Content type '%s' not supported", contentType), "scim")
+		common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Content type '%s' not supported", contentType), "scim")
 		return
 	}
 
@@ -56,13 +56,13 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	existingUser, ok := h.users.Get(id)
 	if !ok {
-		common.Error(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", user.ID), "scim_resource_not_found")
+		common.JSONError(w, http.StatusNotFound, fmt.Sprintf("User %s does not exist", user.ID), "scim_resource_not_found")
 		return
 	}
 
 	version, err := strconv.ParseInt(req.Header.Get("If-Match"), 10, 64)
 	if err != nil || existingUser.Version != int(version) {
-		common.Error(w, http.StatusBadRequest, "Missing If-Match for PUT", "scim")
+		common.JSONError(w, http.StatusBadRequest, "Missing If-Match for PUT", "scim")
 		return
 	}
 

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/server/clients"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
@@ -130,5 +131,13 @@ var _ = Describe("createHandler", func() {
 			"error_description": "bananas is not an allowed grant type. Must be one of: [implicit refresh_token authorization_code client_credentials password]",
 			"error": "invalid_client"
 		}`))
+	})
+
+	It("returns an error response when the request cannot be unmarshalled", func() {
+		request.Body = ioutil.NopCloser(strings.NewReader("%%%"))
+
+		router.ServeHTTP(recorder, request)
+		Expect(recorder.Code).To(Equal(http.StatusBadRequest))
+		Expect(recorder.Body).To(ContainSubstring("The request sent by the client was syntactically incorrect."))
 	})
 })

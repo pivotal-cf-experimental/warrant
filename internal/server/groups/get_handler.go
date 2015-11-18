@@ -22,7 +22,7 @@ func (h getHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Audiences:   []string{"scim"},
 		Authorities: []string{"scim.read"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 

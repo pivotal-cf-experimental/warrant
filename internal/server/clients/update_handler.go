@@ -21,7 +21,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Authorities: []string{"clients.write"},
 		Audiences:   []string{"clients"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -33,7 +33,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	client := domain.NewClientFromDocument(document)
 	if err := client.Validate(); err != nil {
-		common.Error(w, http.StatusBadRequest, err.Error(), "invalid_client")
+		common.JSONError(w, http.StatusBadRequest, err.Error(), "invalid_client")
 		return
 	}
 

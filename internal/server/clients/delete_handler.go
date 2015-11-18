@@ -17,7 +17,7 @@ type deleteHandler struct {
 func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	if len(token) == 0 {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -25,7 +25,7 @@ func (h deleteHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Authorities: []string{"clients.write"},
 		Audiences:   []string{"clients"},
 	}); !ok {
-		common.Error(w, http.StatusForbidden, "Invalid token does not contain resource id (clients)", "access_denied")
+		common.JSONError(w, http.StatusForbidden, "Invalid token does not contain resource id (clients)", "access_denied")
 		return
 	}
 

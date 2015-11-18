@@ -23,7 +23,7 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Audiences:   []string{"scim"},
 		Authorities: []string{"scim.write"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if _, ok := h.groups.GetByName(document.DisplayName); ok {
-		common.Error(w, http.StatusConflict, fmt.Sprintf("A group with displayName: %s already exists.", document.DisplayName), "scim_resource_already_exists")
+		common.JSONError(w, http.StatusConflict, fmt.Sprintf("A group with displayName: %s already exists.", document.DisplayName), "scim_resource_already_exists")
 		return
 	}
 

@@ -23,7 +23,7 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Audiences:   []string{"scim"},
 		Authorities: []string{"scim.write"},
 	}); !ok {
-		common.Error(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if contentType == "" {
 			contentType = http.DetectContentType(requestBody)
 		}
-		common.Error(w, http.StatusBadRequest, fmt.Sprintf("Content type '%s' not supported", contentType), "scim")
+		common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Content type '%s' not supported", contentType), "scim")
 		return
 	}
 
@@ -48,13 +48,13 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if _, ok := h.users.GetByName(document.UserName); ok {
-		common.Error(w, http.StatusConflict, fmt.Sprintf("Username already in use: %s", document.UserName), "scim_resource_already_exists")
+		common.JSONError(w, http.StatusConflict, fmt.Sprintf("Username already in use: %s", document.UserName), "scim_resource_already_exists")
 		return
 	}
 
 	user := domain.NewUserFromCreateDocument(document)
 	if err := user.Validate(); err != nil {
-		common.Error(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
+		common.JSONError(w, http.StatusBadRequest, err.Error(), "invalid_scim_resource")
 		return
 	}
 	h.users.Add(user)

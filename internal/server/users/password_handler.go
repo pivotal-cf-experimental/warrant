@@ -23,7 +23,7 @@ func (h passwordHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	user, ok := h.users.Get(id)
 	if !ok {
-		common.Error(w, http.StatusUnauthorized, "Not authorized", "access_denied")
+		common.JSONError(w, http.StatusUnauthorized, "Not authorized", "access_denied")
 		return
 	}
 
@@ -34,7 +34,7 @@ func (h passwordHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if !h.canUpdateUserPassword(id, token, user.Password, document.OldPassword) {
-		common.Error(w, http.StatusUnauthorized, "Not authorized", "access_denied")
+		common.JSONError(w, http.StatusUnauthorized, "Not authorized", "access_denied")
 		return
 	}
 

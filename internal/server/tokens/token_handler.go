@@ -23,7 +23,7 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// TODO: actually check the basic auth values
 	_, _, ok := req.BasicAuth()
 	if !ok {
-		common.Error(w, http.StatusUnauthorized, "An Authentication object was not found in the SecurityContext", "unauthorized")
+		common.JSONError(w, http.StatusUnauthorized, "An Authentication object was not found in the SecurityContext", "unauthorized")
 		return
 	}
 
