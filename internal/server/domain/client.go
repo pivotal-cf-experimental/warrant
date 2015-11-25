@@ -7,7 +7,13 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
-var validGrantTypes = []string{"implicit", "refresh_token", "authorization_code", "client_credentials", "password"}
+var validGrantTypes = []string{
+	"implicit",
+	"refresh_token",
+	"authorization_code",
+	"client_credentials",
+	"password",
+}
 
 type Client struct {
 	ID                   string

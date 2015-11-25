@@ -28,12 +28,6 @@ var _ = Describe("getHandler", func() {
 			Audiences:   []string{"clients"},
 		})
 
-		var err error
-		request, err = http.NewRequest("GET", "/oauth/clients/some-client-id", nil)
-		Expect(err).NotTo(HaveOccurred())
-		request.Header.Set("Authorization", fmt.Sprintf("bearer %s", token))
-
-		recorder = httptest.NewRecorder()
 		clientsCollection := domain.NewClients()
 		clientsCollection.Add(domain.Client{
 			ID:                   "some-client-id",
@@ -46,6 +40,12 @@ var _ = Describe("getHandler", func() {
 			Autoapprove:          []string{"some-approval"},
 		})
 
+		var err error
+		request, err = http.NewRequest("GET", "/oauth/clients/some-client-id", nil)
+		Expect(err).NotTo(HaveOccurred())
+		request.Header.Set("Authorization", fmt.Sprintf("bearer %s", token))
+
+		recorder = httptest.NewRecorder()
 		router = clients.NewRouter(clientsCollection, tokensCollection)
 	})
 
