@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,6 +54,8 @@ var _ = BeforeSuite(func() {
 
 	adminClient.Authorities = append(adminClient.Authorities, "password.write")
 	adminClient.Authorities = append(adminClient.Authorities, "uaa.resource")
+	adminClient.AuthorizedGrantTypes = append(adminClient.AuthorizedGrantTypes, "password")
+	adminClient.AccessTokenValidity = time.Duration(2) * time.Hour
 	err = warrantClient.Clients.Update(adminClient, UAAToken)
 	Expect(err).NotTo(HaveOccurred())
 
