@@ -47,4 +47,13 @@ var _ = BeforeSuite(func() {
 	var err error
 	UAAToken, err = warrantClient.Clients.GetToken(UAAAdminClient, UAAAdminSecret)
 	Expect(err).NotTo(HaveOccurred())
+	//Add more power to the client
+	adminClient, err := warrantClient.Clients.Get(UAAAdminClient, UAAToken)
+	Expect(err).NotTo(HaveOccurred())
+
+	adminClient.Authorities = append(adminClient.Authorities, "password.write")
+	adminClient.Authorities = append(adminClient.Authorities, "uaa.resource")
+	err = warrantClient.Clients.Update(adminClient, UAAToken)
+	Expect(err).NotTo(HaveOccurred())
+
 })

@@ -123,9 +123,9 @@ var _ = Describe("Tokens", func() {
 
 	Context("fetching the signing key", func() {
 		It("can fetch a valid signing key from the server", func() {
-			signingKey, err := warrantClient.Tokens.GetSigningKey()
+			signingKey, err := warrantClient.Tokens.GetSigningKey(UAAAdminClient, UAAAdminSecret)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(signingKey.Algorithm).To(Equal("SHA256withRSA"))
+			Expect(signingKey.Algorithm).To(Equal("HMACSHA256"))
 
 			block, _ := pem.Decode([]byte(signingKey.Value))
 			Expect(block).NotTo(BeNil())
