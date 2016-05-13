@@ -30,7 +30,7 @@ var _ = Describe("Tokens", func() {
 		)
 
 		BeforeEach(func() {
-			scopes = []string{"notification_preferences.read", "notification_preferences.write"}
+			scopes = []string{"scim.me"}
 			client = warrant.Client{
 				ID:                   UAADefaultClientID,
 				Scope:                scopes,
