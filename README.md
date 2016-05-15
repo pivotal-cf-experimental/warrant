@@ -11,6 +11,14 @@ Warrant is still under development and the APIs shown herein are subject to chan
 
 Warrant can be used in a variety of ways. Here is a simple example to get you started:
 
+## Running the tests
+
+To run all the tests use this command
+
+```bash
+ginkgo -r -p -randomizeAllSpecs .
+```
+
 ```go
 package main
 

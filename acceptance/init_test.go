@@ -39,6 +39,15 @@ var _ = BeforeSuite(func() {
 	UAAAdminClient = os.Getenv("UAA_ADMIN_CLIENT")
 	UAAAdminSecret = os.Getenv("UAA_ADMIN_SECRET")
 
+	switch {
+	case UAAHost == "":
+		Fail("UAA_HOST is a required environment variable")
+	case UAAAdminClient == "":
+		Fail("UAA_ADMIN_CLIENT is a required enviroment variable")
+	case UAAAdminSecret == "":
+		Fail("UAA_ADMIN_SECRET is a required envrionment variable")
+	}
+
 	warrantClient := warrant.New(warrant.Config{
 		Host:          UAAHost,
 		SkipVerifySSL: true,
