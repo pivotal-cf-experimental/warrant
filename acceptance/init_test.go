@@ -40,7 +40,7 @@ var _ = BeforeSuite(func() {
 	UAAAdminSecret = os.Getenv("UAA_ADMIN_SECRET")
 
 	switch {
-	case UAAHost == "":
+	case UAAHost == "https://":
 		Fail("UAA_HOST is a required environment variable")
 	case UAAAdminClient == "":
 		Fail("UAA_ADMIN_CLIENT is a required enviroment variable")
