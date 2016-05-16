@@ -147,7 +147,13 @@ var _ = Describe("ClientsService", func() {
 		})
 
 		It("retrieves a token for the client given a valid secret", func() {
-			clientToken, err := service.GetToken(client.ID, clientSecret)
+			grant := warrant.GrantTypes{
+				ClientCredentials: warrant.ClientCredentials{
+					ID:     client.ID,
+					Secret: clientSecret,
+				},
+			}
+			clientToken, err := service.GetToken(grant)
 			Expect(err).NotTo(HaveOccurred())
 
 			tokensService := warrant.NewTokensService(config)
@@ -162,6 +168,8 @@ var _ = Describe("ClientsService", func() {
 
 		Context("failure cases", func() {
 			It("returns an error if the json response is malformed", func() {
+				grant := warrant.GrantTypes{}
+
 				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					w.Write([]byte("this is not JSON"))
 				}))
@@ -171,7 +179,7 @@ var _ = Describe("ClientsService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.GetToken("some-client", "some-secret")
+				_, err := service.GetToken(grant)
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
 			})
