@@ -1,3 +1,9 @@
 [submodule "vendor/github.com/dgrijalva/jwt-go"]
 	path = vendor/github.com/dgrijalva/jwt-go
 	url = https://github.com/dgrijalva/jwt-go
+[submodule "vendor/github.com/onsi/ginkgo"]
+	path = vendor/github.com/onsi/ginkgo
+	url = https://github.com/onsi/ginkgo
+[submodule "vendor/github.com/onsi/gomega"]
+	path = vendor/github.com/onsi/gomega
+	url = https://github.com/onsi/gomega
