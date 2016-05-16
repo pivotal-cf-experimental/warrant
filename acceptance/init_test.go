@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,6 +39,15 @@ var _ = BeforeSuite(func() {
 	UAAAdminClient = os.Getenv("UAA_ADMIN_CLIENT")
 	UAAAdminSecret = os.Getenv("UAA_ADMIN_SECRET")
 
+	switch {
+	case UAAHost == "https://":
+		Fail("UAA_HOST is a required environment variable")
+	case UAAAdminClient == "":
+		Fail("UAA_ADMIN_CLIENT is a required enviroment variable")
+	case UAAAdminSecret == "":
+		Fail("UAA_ADMIN_SECRET is a required envrionment variable")
+	}
+
 	warrantClient := warrant.New(warrant.Config{
 		Host:          UAAHost,
 		SkipVerifySSL: true,
@@ -47,4 +57,15 @@ var _ = BeforeSuite(func() {
 	var err error
 	UAAToken, err = warrantClient.Clients.GetToken(UAAAdminClient, UAAAdminSecret)
 	Expect(err).NotTo(HaveOccurred())
+	//Add more power to the client
+	adminClient, err := warrantClient.Clients.Get(UAAAdminClient, UAAToken)
+	Expect(err).NotTo(HaveOccurred())
+
+	adminClient.Authorities = append(adminClient.Authorities, "password.write")
+	adminClient.Authorities = append(adminClient.Authorities, "uaa.resource")
+	adminClient.AuthorizedGrantTypes = append(adminClient.AuthorizedGrantTypes, "password")
+	adminClient.AccessTokenValidity = time.Duration(2) * time.Hour
+	err = warrantClient.Clients.Update(adminClient, UAAToken)
+	Expect(err).NotTo(HaveOccurred())
+
 })

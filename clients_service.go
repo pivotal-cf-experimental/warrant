@@ -16,6 +16,10 @@ type ClientsService struct {
 	config Config
 }
 
+type grantType interface {
+	GenerateForm() url.Values
+}
+
 // NewClientsService returns a ClientsService initialized with the given Config.
 func NewClientsService(config Config) ClientsService {
 	return ClientsService{
@@ -95,15 +99,15 @@ func (cs ClientsService) Delete(id, token string) error {
 
 // GetToken will make a request to UAA to retrieve a client token using the
 // "client_credentials" grant type. A client id and secret are required.
-func (cs ClientsService) GetToken(id, secret string) (string, error) {
+func (cs ClientsService) GetToken(gt grantType) (string, error) {
+	clientID := gt.(GrantTypes).ClientCredentials.ID
+	clientSecret := gt.(GrantTypes).ClientCredentials.Secret
+
 	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          "/oauth/token",
-		Authorization: network.NewBasicAuthorization(id, secret),
-		Body: network.NewFormRequestBody(url.Values{
-			"client_id":  []string{id},
-			"grant_type": []string{"client_credentials"},
-		}),
+		Authorization: network.NewBasicAuthorization(clientID, clientSecret),
+		Body:          network.NewFormRequestBody(gt.GenerateForm()),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {

@@ -41,7 +41,7 @@ var _ = Describe("User Lifecycle", func() {
 			Expect(user.UpdatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 			Expect(user.Version).To(Equal(0))
 			Expect(user.Active).To(BeTrue())
-			Expect(user.Verified).To(BeFalse())
+			Expect(user.Verified).To(BeTrue())
 			Expect(user.Origin).To(Equal("uaa"))
 			//Expect(user.Groups).To(ConsistOf([]warrant.Group{})) TODO: finish up groups implementation
 		})

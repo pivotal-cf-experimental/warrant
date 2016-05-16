@@ -60,10 +60,11 @@ func (ts TokensService) Decode(token string) (Token, error) {
 
 // GetSigningKey makes a request to UAA to retrieve the SigningKey used to
 // generate valid tokens.
-func (ts TokensService) GetSigningKey() (SigningKey, error) {
+func (ts TokensService) GetSigningKey(id, secret string) (SigningKey, error) {
 	resp, err := newNetworkClient(ts.config).MakeRequest(network.Request{
-		Method: "GET",
-		Path:   "/token_key",
+		Method:        "GET",
+		Authorization: network.NewBasicAuthorization(id, secret),
+		Path:          "/token_key",
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {

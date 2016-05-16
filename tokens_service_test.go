@@ -66,7 +66,7 @@ var _ = Describe("TokensService", func() {
 
 	Describe("GetSigningKey", func() {
 		It("returns the public key, used to sign tokens", func() {
-			key, err := service.GetSigningKey()
+			key, err := service.GetSigningKey("id", "secret")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(key).To(Equal(warrant.SigningKey{
 				Algorithm: "SHA256withRSA",
@@ -86,7 +86,7 @@ var _ = Describe("TokensService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.GetSigningKey()
+				_, err := service.GetSigningKey("id", "secret")
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
 			})
 
@@ -101,7 +101,7 @@ var _ = Describe("TokensService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.GetSigningKey()
+				_, err := service.GetSigningKey("id", "secret")
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
 			})
