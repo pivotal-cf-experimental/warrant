@@ -172,9 +172,12 @@ func (us UsersService) ChangePassword(id, oldPassword, password, token string) e
 func (us UsersService) GetToken(username, password string, client Client) (string, error) {
 	query := url.Values{
 		"client_id":     []string{client.ID},
-		"redirect_uri":  client.RedirectURI,
 		"scope":         []string{strings.Join(client.Scope, " ")},
 		"response_type": []string{"token"},
+	}
+
+	if len(client.RedirectURI) > 0 {
+		query["redirect_uri"] = client.RedirectURI
 	}
 
 	requestPath := url.URL{
