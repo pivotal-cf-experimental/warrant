@@ -398,8 +398,8 @@ var _ = Describe("UsersService", func() {
 
 			It("returns an error when the response is not parsable", func() {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-					w.Header().Set("Location", "%%%")
-					w.WriteHeader(http.StatusFound)
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(`%%%%%`))
 				}))
 
 				config.Host = server.URL
@@ -407,18 +407,7 @@ var _ = Describe("UsersService", func() {
 
 				_, err := service.GetToken("username", "password", client)
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
-				Expect(err).To(MatchError(`malformed response: parse %%%: invalid URL escape "%%%"`))
-			})
-
-			It("returns an error when the autoapprove field does not cover the scopes", func() {
-				clientsService := warrant.NewClientsService(config)
-				client.Autoapprove = []string{}
-
-				err := clientsService.Update(client, token)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = service.GetToken("username", "password", client)
-				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
+				Expect(err).To(MatchError(ContainSubstring(`invalid character '%' looking for beginning of value`)))
 			})
 
 			It("returns an error when the client requesting the token does not exist", func() {

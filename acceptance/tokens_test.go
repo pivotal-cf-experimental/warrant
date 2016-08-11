@@ -36,7 +36,7 @@ var _ = Describe("Tokens", func() {
 				Scope:                scopes,
 				ResourceIDs:          []string{""},
 				Authorities:          []string{"scim.read", "scim.write"},
-				AuthorizedGrantTypes: []string{"implicit"},
+				AuthorizedGrantTypes: []string{"password"},
 				AccessTokenValidity:  24 * time.Hour,
 				RedirectURI:          []string{"https://redirect.example.com"},
 				Autoapprove:          scopes,

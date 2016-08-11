@@ -28,7 +28,7 @@ var _ = Describe("Passwords", func() {
 			Scope:                []string{"openid", "password.write"},
 			ResourceIDs:          []string{},
 			Authorities:          []string{"scim.read", "scim.write"},
-			AuthorizedGrantTypes: []string{"implicit"},
+			AuthorizedGrantTypes: []string{"password"},
 			AccessTokenValidity:  24 * time.Hour,
 			RedirectURI:          []string{"https://redirect.example.com"},
 			Autoapprove:          []string{"openid", "password.write"},
