@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/server/clients"
-	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

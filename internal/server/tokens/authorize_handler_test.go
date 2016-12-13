@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/tokens"
-	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

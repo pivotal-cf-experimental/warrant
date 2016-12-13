@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+
 	"github.com/dgrijalva/jwt-go"
 )
 

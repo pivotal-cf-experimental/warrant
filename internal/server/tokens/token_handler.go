@@ -14,9 +14,9 @@ type urlFinder interface {
 }
 
 type tokenHandler struct {
-	clients   *domain.Clients
-	users     *domain.Users
-	urlFinder urlFinder
+	clients    *domain.Clients
+	users      *domain.Users
+	urlFinder  urlFinder
 	privateKey string
 }
 

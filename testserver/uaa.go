@@ -5,11 +5,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/clients"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/groups"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/tokens"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/users"
-	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
 
 var defaultScopes = []string{
@@ -33,7 +33,7 @@ type UAA struct {
 	groups  *domain.Groups
 	tokens  *domain.Tokens
 
-	publicKey string
+	publicKey  string
 	privateKey string
 }
 
@@ -41,7 +41,6 @@ type UAA struct {
 func NewUAA() *UAA {
 	privateKey := common.TestPrivateKey
 	publicKey := common.TestPublicKey
-
 
 	tokensCollection := domain.NewTokens(publicKey, privateKey, defaultScopes)
 	usersCollection := domain.NewUsers()

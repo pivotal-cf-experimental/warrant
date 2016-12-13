@@ -1,15 +1,16 @@
 package tokens
 
 import (
-	"encoding/json"
-	"net/http"
-	"encoding/pem"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
+	"encoding/pem"
 	"math/big"
+	"net/http"
+
+	"crypto/rsa"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
-	"crypto/rsa"
 )
 
 type keyHandler struct {
