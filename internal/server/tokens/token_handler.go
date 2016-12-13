@@ -43,6 +43,7 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Form.Get("grant_type") == "client_credentials" {
 		t.ClientID = clientID
 		t.Scopes = client.Scope
+		t.Authorities = client.Authorities
 		t.Audiences = []string{"scim", "password"}
 		t.Issuer = fmt.Sprintf("%s/oauth/token", h.urlFinder.URL())
 	} else {
