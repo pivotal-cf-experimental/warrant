@@ -10,6 +10,7 @@ import (
 
 	"github.com/pivotal-cf-experimental/warrant/internal/server/clients"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,7 +26,7 @@ var _ = Describe("updateHandler", func() {
 	)
 
 	BeforeEach(func() {
-		tokensCollection = domain.NewTokens("", []string{})
+		tokensCollection = domain.NewTokens(common.TestPublicKey, common.TestPrivateKey, []string{})
 
 		clientsCollection = domain.NewClients()
 		clientsCollection.Add(domain.Client{

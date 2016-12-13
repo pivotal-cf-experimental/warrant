@@ -17,7 +17,7 @@ type tokenHandler struct {
 	clients   *domain.Clients
 	users     *domain.Users
 	urlFinder urlFinder
-	publicKey string
+	privateKey string
 }
 
 func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -57,7 +57,7 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		t.UserID = user.ID
 	}
 
-	response, err := json.Marshal(t.ToDocument(h.publicKey))
+	response, err := json.Marshal(t.ToDocument(h.privateKey))
 	if err != nil {
 		panic(err)
 	}

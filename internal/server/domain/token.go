@@ -51,10 +51,10 @@ func newTokenFromClaims(claims map[string]interface{}) Token {
 	return t
 }
 
-func (t Token) ToDocument(publicKey string) documents.TokenResponse {
+func (t Token) ToDocument(privateKey string) documents.TokenResponse {
 	return documents.TokenResponse{
 		AccessToken: Tokens{
-			PublicKey: publicKey,
+			PrivateKey: privateKey,
 		}.Encrypt(t),
 		TokenType: "bearer",
 		ExpiresIn: 5000,

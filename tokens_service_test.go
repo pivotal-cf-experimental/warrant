@@ -4,10 +4,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/pivotal-cf-experimental/warrant"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/pivotal-cf-experimental/warrant"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
 
 var _ = Describe("TokensService", func() {
@@ -70,7 +72,7 @@ var _ = Describe("TokensService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(key).To(Equal(warrant.SigningKey{
 				Algorithm: "SHA256withRSA",
-				Value:     fakeUAAPublicKey,
+				Value:     common.TestPublicKey,
 			}))
 		})
 

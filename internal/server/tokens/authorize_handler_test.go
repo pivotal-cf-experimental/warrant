@@ -9,6 +9,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/tokens"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,7 +54,7 @@ var _ = Describe("authorizeHandler", func() {
 		request.Header.Set("Accept", "application/json")
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		tokensCollection = domain.NewTokens("", []string{})
+		tokensCollection = domain.NewTokens(common.TestPublicKey, common.TestPrivateKey, []string{})
 		usersCollection := domain.NewUsers()
 		clientsCollection := domain.NewClients()
 
@@ -72,7 +73,8 @@ var _ = Describe("authorizeHandler", func() {
 		user.Password = "password"
 		usersCollection.Add(user)
 
-		router = tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, "", hasURL{})
+		router = tokens.NewRouter(tokensCollection,
+			usersCollection, clientsCollection, common.TestPublicKey, common.TestPrivateKey, hasURL{})
 	})
 
 	It("returns a valid token when there is no overlap between client and user scopes", func() {

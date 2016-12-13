@@ -21,7 +21,7 @@ var _ = Describe("getHandler", func() {
 	)
 
 	BeforeEach(func() {
-		tokensCollection = domain.NewTokens("", []string{})
+		tokensCollection = NewTokens()
 		token := tokensCollection.Encrypt(domain.Token{
 			ClientID:    "my-client-id",
 			Authorities: []string{"clients.read"},

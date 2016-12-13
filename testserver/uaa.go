@@ -9,6 +9,7 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/server/groups"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/tokens"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/users"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
 
 var defaultScopes = []string{
@@ -24,12 +25,6 @@ var defaultScopes = []string{
 	"notification_preferences.read",
 }
 
-// Config is the set of configuration values to provide
-// to the fake server.
-type Config struct {
-	PublicKey string
-}
-
 // UAA is a fake implementation of the UAA HTTP service.
 type UAA struct {
 	server  *httptest.Server
@@ -39,11 +34,16 @@ type UAA struct {
 	tokens  *domain.Tokens
 
 	publicKey string
+	privateKey string
 }
 
 // NewUAA returns a new UAA initialized with the given Config.
-func NewUAA(config Config) *UAA {
-	tokensCollection := domain.NewTokens(config.PublicKey, defaultScopes) // TODO: use a real RSA key
+func NewUAA() *UAA {
+	privateKey := common.TestPrivateKey
+	publicKey := common.TestPublicKey
+
+
+	tokensCollection := domain.NewTokens(publicKey, privateKey, defaultScopes)
 	usersCollection := domain.NewUsers()
 	clientsCollection := domain.NewClients()
 	groupsCollection := domain.NewGroups()
@@ -55,16 +55,32 @@ func NewUAA(config Config) *UAA {
 		users:     usersCollection,
 		clients:   clientsCollection,
 		groups:    groupsCollection,
-		publicKey: config.PublicKey,
+		publicKey: publicKey,
 	}
+
+	tokenRouter := tokens.NewRouter(
+		tokensCollection,
+		usersCollection,
+		clientsCollection,
+		publicKey,
+		privateKey,
+		uaa)
 
 	router.Handle("/Users{a:.*}", users.NewRouter(usersCollection, tokensCollection))
 	router.Handle("/Groups{a:.*}", groups.NewRouter(groupsCollection, tokensCollection))
 	router.Handle("/oauth/clients{a:.*}", clients.NewRouter(clientsCollection, tokensCollection))
-	router.Handle("/oauth{a:.*}", tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, config.PublicKey, uaa))
-	router.Handle("/token_key", tokens.NewRouter(tokensCollection, usersCollection, clientsCollection, config.PublicKey, uaa))
+	router.Handle("/oauth{a:.*}", tokenRouter)
+	router.Handle("/token_key", tokenRouter)
 
 	return uaa
+}
+
+func (s *UAA) PublicKey() string {
+	return s.publicKey
+}
+
+func (s *UAA) PrivateKey() string {
+	return s.privateKey
 }
 
 // Start will cause the HTTP server to bind to a port

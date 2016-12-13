@@ -23,7 +23,7 @@ var _ = Describe("deleteHandler", func() {
 
 	BeforeEach(func() {
 		clientsCollection = domain.NewClients()
-		tokensCollection = domain.NewTokens("", []string{})
+		tokensCollection = NewTokens()
 		router = clients.NewRouter(clientsCollection, tokensCollection)
 		recorder = httptest.NewRecorder()
 
