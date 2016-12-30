@@ -15,6 +15,8 @@ import (
 type Query struct {
 	// Filter is a string representation of a filtering expression as specified in the SCIM spec.
 	Filter string
+	// SortBy is a string representation of what field to sort the users by.
+	SortBy string
 }
 
 // TODO: Score password strength
@@ -205,6 +207,7 @@ func (us UsersService) List(query Query, token string) ([]User, error) {
 		Path: "/Users",
 		RawQuery: url.Values{
 			"filter": []string{query.Filter},
+			"sortBy": []string{query.SortBy},
 		}.Encode(),
 	}
 

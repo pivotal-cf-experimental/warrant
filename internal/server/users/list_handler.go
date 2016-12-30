@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
@@ -46,6 +47,13 @@ func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	} else {
 		list = append(list, h.users.All()...)
+	}
+
+	switch by := query.Get("sortBy"); by {
+	case "email":
+		sort.Sort(domain.ByEmail(list))
+	default:
+		sort.Sort(domain.ByCreated(list))
 	}
 
 	response, err := json.Marshal(list.ToDocument())

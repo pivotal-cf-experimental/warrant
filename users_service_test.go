@@ -428,10 +428,10 @@ var _ = Describe("UsersService", func() {
 
 		BeforeEach(func() {
 			var err error
-			user, err = service.Create("username", "user@example.com", token)
+			user, err = service.Create("username", "xyz@example.com", token)
 			Expect(err).NotTo(HaveOccurred())
 
-			otherUser, err = service.Create("other", "other@example.com", token)
+			otherUser, err = service.Create("other", "abc@example.com", token)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -474,17 +474,24 @@ var _ = Describe("UsersService", func() {
 			Expect(users[0].ID).To(Equal(user.ID))
 		})
 
-		It("ignores the filter if none is given", func() {
+		It("defaults to sorting users by date created", func() {
 			users, err := service.List(warrant.Query{}, token)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(users).To(HaveLen(2))
-			var ids []string
-			for _, user := range users {
-				ids = append(ids, user.ID)
-			}
-			Expect(ids).To(ContainElement(user.ID))
-			Expect(ids).To(ContainElement(otherUser.ID))
+			Expect(users[0].ID).To(Equal(user.ID))
+			Expect(users[1].ID).To(Equal(otherUser.ID))
+		})
+
+		It("returns a list of users sorted by email when sortBy is given", func() {
+			users, err := service.List(warrant.Query{
+				SortBy: "email",
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(users).To(HaveLen(2))
+			Expect(users[0].Emails[0]).To(Equal(otherUser.Emails[0]))
+			Expect(users[1].Emails[0]).To(Equal(user.Emails[0]))
 		})
 
 		Context("failure cases", func() {
