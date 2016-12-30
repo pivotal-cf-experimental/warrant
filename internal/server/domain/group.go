@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
 
 type group struct {
@@ -16,8 +17,13 @@ type group struct {
 
 func NewGroupFromCreateDocument(document documents.CreateGroupRequest) group {
 	now := time.Now().UTC()
+	id, err := common.NewUUID()
+	if err != nil {
+		panic(err)
+	}
+
 	return group{
-		ID:          generateID(),
+		ID:          id,
 		DisplayName: document.DisplayName,
 		CreatedAt:   now,
 		UpdatedAt:   now,
