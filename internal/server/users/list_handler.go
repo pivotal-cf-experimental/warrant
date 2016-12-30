@@ -22,27 +22,30 @@ func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	filter := query.Get("filter")
-	matches := regexp.MustCompile(`(.*) (.*) ['"](.*)['"]$`).FindStringSubmatch(filter)
-	parameter := matches[1]
-	operator := matches[2]
-	value := matches[3]
-
-	if !validParameter(parameter) {
-		common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid filter expression: [%s]", filter), "scim")
-		return
-	}
-
-	if !validOperator(operator) {
-		common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid filter expression: [%s]", filter), "scim")
-		return
-	}
-
 	list := domain.UsersList{}
 
-	user, found := h.users.Get(value)
-	if found {
-		list = append(list, user)
+	filter := query.Get("filter")
+	if filter != "" {
+		matches := regexp.MustCompile(`(.*) (.*) ['"](.*)['"]$`).FindStringSubmatch(filter)
+		parameter := matches[1]
+		operator := matches[2]
+		value := matches[3]
+
+		if !validParameter(parameter) {
+			common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid filter expression: [%s]", filter), "scim")
+			return
+		}
+
+		if !validOperator(operator) {
+			common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid filter expression: [%s]", filter), "scim")
+			return
+		}
+		user, found := h.users.Get(value)
+		if found {
+			list = append(list, user)
+		}
+	} else {
+		list = append(list, h.users.All()...)
 	}
 
 	response, err := json.Marshal(list.ToDocument())

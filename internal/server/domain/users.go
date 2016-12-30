@@ -10,6 +10,14 @@ func NewUsers() *Users {
 	}
 }
 
+func (collection Users) All() []User {
+	var users []User
+	for _, u := range collection.store {
+		users = append(users, u)
+	}
+	return users
+}
+
 func (collection Users) Add(u User) {
 	collection.store[u.ID] = u
 }

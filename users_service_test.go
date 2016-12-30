@@ -421,11 +421,17 @@ var _ = Describe("UsersService", func() {
 	})
 
 	Describe("List", func() {
-		var user warrant.User
+		var (
+			user      warrant.User
+			otherUser warrant.User
+		)
 
 		BeforeEach(func() {
 			var err error
 			user, err = service.Create("username", "user@example.com", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			otherUser, err = service.Create("other", "other@example.com", token)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -466,6 +472,19 @@ var _ = Describe("UsersService", func() {
 
 			Expect(users).To(HaveLen(1))
 			Expect(users[0].ID).To(Equal(user.ID))
+		})
+
+		It("ignores the filter if none is given", func() {
+			users, err := service.List(warrant.Query{}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(users).To(HaveLen(2))
+			var ids []string
+			for _, user := range users {
+				ids = append(ids, user.ID)
+			}
+			Expect(ids).To(ContainElement(user.ID))
+			Expect(ids).To(ContainElement(otherUser.ID))
 		})
 
 		Context("failure cases", func() {
