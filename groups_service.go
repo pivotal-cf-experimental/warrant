@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
@@ -50,6 +51,66 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
+func (gs GroupsService) AddMember(groupID, memberID, token string) error {
+	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:        "POST",
+		Path:          fmt.Sprintf("/Groups/%s/members", groupID),
+		Authorization: network.NewTokenAuthorization(token),
+		Body: network.NewJSONRequestBody(documents.Member{
+			Origin: "uaa",
+			Type:   "USER",
+			Value:  memberID,
+		}),
+		AcceptableStatusCodes: []int{http.StatusCreated},
+	})
+	if err != nil {
+		return translateError(err)
+	}
+
+	return nil
+}
+
+func (gs GroupsService) ListMembers(groupID, token string) ([]Member, error) {
+	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:                "GET",
+		Path:                  fmt.Sprintf("/Groups/%s/members", groupID),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return nil, translateError(err)
+	}
+
+	var response []documents.Member
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return nil, MalformedResponseError{err}
+	}
+
+	var memberList []Member
+	for _, m := range response {
+		memberList = append(memberList, Member{
+			ID: m.Value,
+		})
+	}
+
+	return memberList, nil
+}
+
+func (gs GroupsService) RemoveMember(groupID, memberID, token string) error {
+	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:                "DELETE",
+		Path:                  fmt.Sprintf("/Groups/%s/members/%s", groupID, memberID),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return translateError(err)
+	}
+
+	return nil
+}
+
 // Get will make a request to UAA to fetch the group resource with the matching id.
 // A token with the "scim.read" scope is required.
 func (gs GroupsService) Get(id, token string) (Group, error) {
@@ -75,9 +136,20 @@ func (gs GroupsService) Get(id, token string) (Group, error) {
 // List wil make a request to UAA to list the groups that match the given Query.
 // A token with the "scim.read" scope is required.
 func (gs GroupsService) List(query Query, token string) ([]Group, error) {
+	requestPath := "/Groups"
+	if query.Filter != "" {
+		url := url.URL{
+			Path: "/Groups",
+			RawQuery: url.Values{
+				"filter": []string{query.Filter},
+			}.Encode(),
+		}
+		requestPath = url.String()
+	}
+
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
-		Path:                  "/Groups",
+		Path:                  requestPath,
 		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})

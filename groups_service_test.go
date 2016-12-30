@@ -1,6 +1,7 @@
 package warrant_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -177,6 +178,44 @@ var _ = Describe("GroupsService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(groups).To(HaveLen(2))
 			Expect(groups).To(ConsistOf(writeGroup, readGroup))
+		})
+
+		It("finds groups that match a filter", func() {
+			group, err := service.Create("banana.write", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			groups, err := service.List(warrant.Query{
+				Filter: fmt.Sprintf("displayName eq %q", "banana.write"),
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(groups).To(HaveLen(1))
+			Expect(groups[0].ID).To(Equal(group.ID))
+		})
+
+		Context("when a group does not match filter", func() {
+			It("does not return that group", func() {
+				_, err := service.Create("banana.something-else", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				groups, err := service.List(warrant.Query{
+					Filter: fmt.Sprintf(`displayName eq "%s"`, "banana.nope"),
+				}, token)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(groups).To(HaveLen(0))
+			})
+		})
+
+		Context("when nothing matches the filter", func() {
+			It("returns an empty list", func() {
+				groups, err := service.List(warrant.Query{
+					Filter: `displayName eq "a-non-existant-thing"`,
+				}, token)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(groups).To(HaveLen(0))
+			})
 		})
 
 		Context("failure cases", func() {

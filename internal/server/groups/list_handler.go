@@ -2,8 +2,13 @@ package groups
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
+	"strings"
 
+	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/domain"
 )
 
@@ -12,7 +17,44 @@ type listHandler struct {
 }
 
 func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	list := domain.GroupsList(h.groups.All())
+	query, err := url.ParseQuery(req.URL.RawQuery)
+	if err != nil {
+		panic(err)
+	}
+
+	list := domain.GroupsList{}
+	filter := query.Get("filter")
+	if filter != "" {
+		matches := regexp.MustCompile(`(.*) (.*) ['"](.*)['"]$`).FindStringSubmatch(filter)
+		parameter := matches[1]
+		operator := matches[2]
+		value := matches[3]
+
+		if !validParameter(parameter) {
+			common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid parameter in filter expression: [%s]", filter), "scim")
+			return
+		}
+
+		if !validOperator(operator) {
+			common.JSONError(w, http.StatusBadRequest, fmt.Sprintf("Invalid operator in filter expression: [%s]", filter), "scim")
+			return
+		}
+
+		if strings.ToLower(parameter) == "displayname" {
+			group, found := h.groups.GetByName(value)
+			if found {
+				list = append(list, group)
+			}
+		} else {
+			group, found := h.groups.Get(value)
+			if found {
+				list = append(list, group)
+			}
+		}
+
+	} else {
+		list = h.groups.All()
+	}
 
 	response, err := json.Marshal(list.ToDocument())
 	if err != nil {
@@ -21,4 +63,24 @@ func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(response))
+}
+
+func validParameter(parameter string) bool {
+	for _, p := range []string{"id", "displayname"} {
+		if strings.ToLower(parameter) == p {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validOperator(operator string) bool {
+	for _, o := range []string{"eq"} {
+		if strings.ToLower(operator) == o {
+			return true
+		}
+	}
+
+	return false
 }
