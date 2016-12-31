@@ -10,6 +10,8 @@ type CreateUpdateClientRequest struct {
 	// for the client.
 	ClientSecret string `json:"client_secret"`
 
+	Name string `json:"name"`
+
 	// Scope is a list of permission values to apply to user tokens that
 	// are granted to the client.
 	Scope []string `json:"scope"`
@@ -44,6 +46,8 @@ type ClientResponse struct {
 	// ClientID is the unique identifier specifying the client.
 	ClientID string `json:"client_id"`
 
+	Name string `json:"name"`
+
 	// Scope is a list of permission values to apply to user tokens that
 	// are granted to the client.
 	Scope []string `json:"scope"`
@@ -70,4 +74,16 @@ type ClientResponse struct {
 	// Autoapprove is a list of scopes used to auto-approve a request
 	// to fetch a user token.
 	Autoapprove []string `json:"autoapprove"`
+}
+
+type ClientListResponse struct {
+	Schemas []string `json:"schemas"`
+
+	Resources []ClientResponse `json:"resources"`
+
+	StartIndex int `json:"startIndex"`
+
+	ItemsPerPage int `json:"itemsPerPage"`
+
+	TotalResults int `json:"totalResults"`
 }

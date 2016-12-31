@@ -210,4 +210,84 @@ var _ = Describe("ClientsService", func() {
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 	})
+
+	Describe("List", func() {
+		var client warrant.Client
+		var otherClient warrant.Client
+
+		BeforeEach(func() {
+			client = warrant.Client{
+				ID:                   "xyz-client",
+				Name:                 "client",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+			}
+
+			otherClient = warrant.Client{
+				ID:                   "abc-client",
+				Name:                 "other-client",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+			}
+
+			err := service.Create(client, "secret", token)
+			Expect(err).NotTo(HaveOccurred())
+			err = service.Create(otherClient, "secret", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("finds clients that match a filter", func() {
+			clients, err := service.List(warrant.Query{
+				Filter: fmt.Sprintf("id EQ '%s'", client.ID),
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(clients).To(HaveLen(1))
+			Expect(clients[0].ID).To(Equal("xyz-client"))
+		})
+
+		It("returns an empty list of clients if nothing matches the filter", func() {
+			clients, err := service.List(warrant.Query{
+				Filter: "id eq 'not-a-real-id'",
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(clients).To(HaveLen(0))
+		})
+
+		It("returns a list of clients sorted by id", func() {
+			clients, err := service.List(warrant.Query{}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(clients).To(HaveLen(2))
+			Expect(clients[0].ID).To(Equal("abc-client"))
+			Expect(clients[0].Name).To(Equal("other-client"))
+			Expect(clients[1].ID).To(Equal("xyz-client"))
+			Expect(clients[1].Name).To(Equal("client"))
+		})
+
+		It("returns a list of clients sorted by name", func() {
+			clients, err := service.List(warrant.Query{
+				SortBy: "name",
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(clients).To(HaveLen(2))
+			Expect(clients[0].Name).To(Equal("client"))
+			Expect(clients[1].Name).To(Equal("other-client"))
+		})
+
+		It("errors when the token is unauthorized", func() {
+			token = fakeUAA.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
+			err := service.Delete(client.ID, token)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+	})
 })

@@ -31,6 +31,7 @@ var _ = Describe("updateHandler", func() {
 		clientsCollection = domain.NewClients()
 		clientsCollection.Add(domain.Client{
 			ID:                   "some-client-id",
+			Name:                 "banana",
 			Scope:                []string{"some-scope"},
 			ResourceIDs:          []string{"some-resource-id"},
 			Authorities:          []string{"some-authority"},
@@ -42,6 +43,7 @@ var _ = Describe("updateHandler", func() {
 
 		requestBody, err := json.Marshal(map[string]interface{}{
 			"client_id":              "updated-client-id",
+			"name":                   "banana",
 			"scope":                  []string{"updated-scope"},
 			"resource_ids":           []string{"updated-resource-id"},
 			"authorities":            []string{"updated-authority"},
@@ -70,6 +72,7 @@ var _ = Describe("updateHandler", func() {
 		Expect(recorder.Code).To(Equal(http.StatusOK))
 		Expect(recorder.Body).To(MatchJSON(`{
 			"client_id": "updated-client-id",
+			"name": "banana",
 			"scope": ["updated-scope"],
 			"resource_ids": ["updated-resource-id"],
 			"authorities": ["updated-authority"],
@@ -110,6 +113,7 @@ var _ = Describe("updateHandler", func() {
 	It("validates the client updates", func() {
 		requestBody, err := json.Marshal(map[string]interface{}{
 			"client_id":              "updated-client-id",
+			"name":                   "banana",
 			"scope":                  []string{"updated-scope"},
 			"resource_ids":           []string{"updated-resource-id"},
 			"authorities":            []string{"updated-authority"},
@@ -135,6 +139,7 @@ var _ = Describe("updateHandler", func() {
 		Expect(ok).To(BeTrue())
 		Expect(client).To(Equal(domain.Client{
 			ID:                   "updated-client-id",
+			Name:                 "banana",
 			Scope:                []string{"updated-scope"},
 			ResourceIDs:          []string{"updated-resource-id"},
 			Authorities:          []string{"updated-authority"},

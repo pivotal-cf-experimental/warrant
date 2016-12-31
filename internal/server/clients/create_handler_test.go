@@ -34,6 +34,7 @@ var _ = Describe("createHandler", func() {
 		requestBody, err := json.Marshal(map[string]interface{}{
 			"client_id":              "some-client",
 			"client_secret":          "some-client-secret",
+			"name":                   "banana",
 			"scope":                  []string{"some.scope"},
 			"resource_ids":           []string{"resource"},
 			"authorities":            []string{"cloud_controller.read"},
@@ -58,6 +59,7 @@ var _ = Describe("createHandler", func() {
 		Expect(recorder.Code).To(Equal(http.StatusCreated))
 		Expect(recorder.Body).To(MatchJSON(`{
 			"client_id": "some-client",
+			"name":                   "banana",
 			"scope": ["some.scope"],
 			"resource_ids": ["resource"],
 			"authorities": ["cloud_controller.read"],
@@ -75,6 +77,7 @@ var _ = Describe("createHandler", func() {
 		Expect(client).To(Equal(domain.Client{
 			ID:                   "some-client",
 			Secret:               "some-client-secret",
+			Name:                 "banana",
 			Scope:                []string{"some.scope"},
 			ResourceIDs:          []string{"resource"},
 			Authorities:          []string{"cloud_controller.read"},
@@ -116,6 +119,7 @@ var _ = Describe("createHandler", func() {
 		requestBody, err := json.Marshal(map[string]interface{}{
 			"client_id":              "some-client",
 			"client_secret":          "some-client-secret",
+			"name":                   "banana",
 			"scope":                  []string{"some.scope"},
 			"resource_ids":           []string{"resource"},
 			"authorities":            []string{"cloud_controller.read"},

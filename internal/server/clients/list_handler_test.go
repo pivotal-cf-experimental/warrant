@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("getHandler", func() {
+var _ = Describe("listHandler", func() {
 	var (
 		router           http.Handler
 		recorder         *httptest.ResponseRecorder
@@ -42,7 +42,7 @@ var _ = Describe("getHandler", func() {
 		})
 
 		var err error
-		request, err = http.NewRequest("GET", "/oauth/clients/some-client-id", nil)
+		request, err = http.NewRequest("GET", "/oauth/clients", nil)
 		Expect(err).NotTo(HaveOccurred())
 		request.Header.Set("Authorization", fmt.Sprintf("bearer %s", token))
 
@@ -50,30 +50,27 @@ var _ = Describe("getHandler", func() {
 		router = clients.NewRouter(clientsCollection, tokensCollection)
 	})
 
-	It("gets the requested client", func() {
+	It("lists the clients", func() {
 		router.ServeHTTP(recorder, request)
 		Expect(recorder.Code).To(Equal(http.StatusOK))
 		Expect(recorder.Body).To(MatchJSON(`{
-			"client_id": "some-client-id",
-			"name": "banana",
-			"scope": ["some-scope"],
-			"resource_ids": ["some-resource-id"],
-			"authorities": ["some-authority"],
-			"authorized_grant_types": ["some-grant-type"],
-			"autoapprove": ["some-approval"],
-			"access_token_validity": 3600,
-			"redirect_uri": ["https://example.com/sessions/create"]
-		}`))
-	})
-
-	It("returns a 404 if the client cannot be found", func() {
-		request.URL.Path = "/oauth/clients/missing-client"
-
-		router.ServeHTTP(recorder, request)
-		Expect(recorder.Code).To(Equal(http.StatusNotFound))
-		Expect(recorder.Body).To(MatchJSON(`{
-			"error_description": "Client missing-client does not exist",
-			"error": "scim_resource_not_found"
+			"schemas": [
+				"urn:scim:schemas:core:1.0"
+			],
+			"resources": [{	
+					"client_id": "some-client-id",
+					"name": "banana",
+					"scope": ["some-scope"],
+					"resource_ids": ["some-resource-id"],
+					"authorities": ["some-authority"],
+					"authorized_grant_types": ["some-grant-type"],
+					"autoapprove": ["some-approval"],
+					"access_token_validity": 3600,
+					"redirect_uri": ["https://example.com/sessions/create"]
+			}],
+			"startIndex": 1,
+			"itemsPerPage": 100,
+			"totalResults": 1
 		}`))
 	})
 

@@ -62,6 +62,39 @@ func (cs ClientsService) Get(id, token string) (Client, error) {
 	return newClientFromDocument(document), nil
 }
 
+func (cs ClientsService) List(query Query, token string) ([]Client, error) {
+	requestPath := url.URL{
+		Path: "/oauth/clients",
+		RawQuery: url.Values{
+			"filter": []string{query.Filter},
+			"sortBy": []string{query.SortBy},
+		}.Encode(),
+	}
+
+	resp, err := newNetworkClient(cs.config).MakeRequest(network.Request{
+		Method:                "GET",
+		Path:                  requestPath.String(),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return []Client{}, translateError(err)
+	}
+
+	var document documents.ClientListResponse
+	err = json.Unmarshal(resp.Body, &document)
+	if err != nil {
+		return []Client{}, MalformedResponseError{err}
+	}
+
+	var list []Client
+	for _, c := range document.Resources {
+		list = append(list, newClientFromDocument(c))
+	}
+
+	return list, nil
+}
+
 func (cs ClientsService) Update(client Client, token string) error {
 	_, err := newNetworkClient(cs.config).MakeRequest(network.Request{
 		Method:        "PUT",
