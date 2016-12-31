@@ -51,6 +51,8 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 	return newGroupFromResponse(gs.config, response), nil
 }
 
+// AddMember will make a request to UAA to add a member to the group resource with the matching id.
+// A token with the "scim.write" scope is required.
 func (gs GroupsService) AddMember(groupID, memberID, token string) error {
 	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:        "POST",
@@ -70,6 +72,8 @@ func (gs GroupsService) AddMember(groupID, memberID, token string) error {
 	return nil
 }
 
+// ListMembers will make a request to UAA to fetch the members of a group resource with the matching id.
+// A token with the "scim.read" scope is required.
 func (gs GroupsService) ListMembers(groupID, token string) ([]Member, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
@@ -97,6 +101,8 @@ func (gs GroupsService) ListMembers(groupID, token string) ([]Member, error) {
 	return memberList, nil
 }
 
+// RemoveMember will make a request to UAA to remove a member from a group resource.
+// A token with the "scim.write" scope is required.
 func (gs GroupsService) RemoveMember(groupID, memberID, token string) error {
 	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "DELETE",
