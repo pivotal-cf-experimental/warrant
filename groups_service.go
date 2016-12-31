@@ -136,20 +136,17 @@ func (gs GroupsService) Get(id, token string) (Group, error) {
 // List wil make a request to UAA to list the groups that match the given Query.
 // A token with the "scim.read" scope is required.
 func (gs GroupsService) List(query Query, token string) ([]Group, error) {
-	requestPath := "/Groups"
-	if query.Filter != "" {
-		url := url.URL{
-			Path: "/Groups",
-			RawQuery: url.Values{
-				"filter": []string{query.Filter},
-			}.Encode(),
-		}
-		requestPath = url.String()
+	requestPath := url.URL{
+		Path: "/Groups",
+		RawQuery: url.Values{
+			"filter": []string{query.Filter},
+			"sortBy": []string{query.SortBy},
+		}.Encode(),
 	}
 
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",
-		Path:                  requestPath,
+		Path:                  requestPath.String(),
 		Authorization:         network.NewTokenAuthorization(token),
 		AcceptableStatusCodes: []int{http.StatusOK},
 	})

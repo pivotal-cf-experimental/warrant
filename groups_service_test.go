@@ -177,7 +177,8 @@ var _ = Describe("GroupsService", func() {
 			groups, err := service.List(warrant.Query{}, token)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(groups).To(HaveLen(2))
-			Expect(groups).To(ConsistOf(writeGroup, readGroup))
+			Expect(groups[0].DisplayName).To(Equal(writeGroup.DisplayName))
+			Expect(groups[1].DisplayName).To(Equal(readGroup.DisplayName))
 		})
 
 		It("finds groups that match a filter", func() {
@@ -205,6 +206,22 @@ var _ = Describe("GroupsService", func() {
 
 				Expect(groups).To(HaveLen(0))
 			})
+		})
+
+		It("returns a list of groups sorted by display name", func() {
+			_, err := service.Create("eggplant", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = service.Create("banana", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			groups, err := service.List(warrant.Query{
+				SortBy: "displayname",
+			}, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(groups).To(HaveLen(2))
+			Expect(groups[0].DisplayName).To(Equal("banana"))
+			Expect(groups[1].DisplayName).To(Equal("eggplant"))
 		})
 
 		Context("when nothing matches the filter", func() {

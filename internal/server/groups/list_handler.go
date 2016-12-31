@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
@@ -51,9 +52,15 @@ func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				list = append(list, group)
 			}
 		}
-
 	} else {
 		list = h.groups.All()
+	}
+
+	by := strings.ToLower(query.Get("sortBy"))
+	if by == "displayname" {
+		sort.Sort(domain.GroupsByDisplayName(list))
+	} else {
+		sort.Sort(domain.GroupsByCreatedAt(list))
 	}
 
 	response, err := json.Marshal(list.ToDocument())
