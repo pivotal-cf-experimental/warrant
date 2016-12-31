@@ -24,6 +24,8 @@ type Query struct {
 // TODO: Query for user info
 // TODO: Convert user ids to names
 // TODO: Pagination for List
+// TODO: Patch
+// TODO: Change user password
 
 // UsersService provides access to common user actions. Using this service, you can create, fetch,
 // update, delete, and list users. You can also change and set their passwords, and fetch their tokens.

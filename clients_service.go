@@ -10,6 +10,14 @@ import (
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
 )
 
+// TODO: Pagination for List
+// TODO: Change Secret
+// TODO: Batch Create
+// TODO: Batch Update
+// TODO: Batch Secret Change
+// TODO: Batch Delete
+// TODO: Mixed Actions
+
 // ClientsService provides access to the common client actions. Using this service, you can
 // create, delete, or fetch a client. You can also fetch a client token.
 type ClientsService struct {

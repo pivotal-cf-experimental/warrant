@@ -11,6 +11,9 @@ import (
 )
 
 // TODO: Pagination for List
+// TODO: Update a group
+// TODO: Patch a group
+// TODO: Check membership
 
 // GroupsService provides access to common group actions. Using this service,
 // you can create, delete, fetch and list group resources.
