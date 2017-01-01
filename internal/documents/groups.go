@@ -9,6 +9,10 @@ type CreateGroupRequest struct {
 	// DisplayName is the human-friendly name given to a group
 	// resource.
 	DisplayName string `json:"displayName"`
+
+	Description string `json:"description"`
+
+	Members []Member `json:"members"`
 }
 
 // GroupResponse represents the JSON transport data structure
@@ -23,6 +27,11 @@ type GroupResponse struct {
 	// DisplayName is the human-friendly name given to a group
 	// resource.
 	DisplayName string `json:"displayName"`
+
+	//Description is the human readable description of the group.
+	Description string `json:"description"`
+
+	Members []Member `json:"members"`
 
 	// Meta is the collection of metadata describing the group
 	// resource.
@@ -49,6 +58,24 @@ type GroupListResponse struct {
 	// TotalResults is the total number of resources that match
 	// the list query.
 	TotalResults int `json:"totalResults"`
+}
+
+type UpdateGroupRequest struct {
+	// Schemas is the list of schemas for this API request.
+	Schemas []string `json:"schemas"`
+
+	// ID is the unique identifier for this SCIM resource within
+	// the UAA service.
+	ID string `json:"id"`
+
+	DisplayName string `json:"displayName"`
+
+	Description string `json:"description"`
+
+	Members []Member `json:"members"`
+
+	// Meta is the set of metadata for this resource.
+	Meta Meta `json:"meta"`
 }
 
 // GroupAssociation represents the JSON transport data structure

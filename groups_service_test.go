@@ -80,12 +80,78 @@ var _ = Describe("GroupsService", func() {
 		})
 	})
 
+	Describe("Update", func() {
+		var group warrant.Group
+
+		BeforeEach(func() {
+			var err error
+			group, err = service.Create("banana.read", token)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("updates fields an existing group", func() {
+			group.DisplayName = "banana.nope"
+			group.Description = "bananas and such"
+
+			updatedGroup, err := service.Update(group, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedGroup.DisplayName).To(Equal(group.DisplayName))
+			Expect(updatedGroup.Description).To(Equal(group.Description))
+
+			fetchedGroup, err := service.Get(group.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fetchedGroup).To(Equal(updatedGroup))
+		})
+
+		It("requires the scim.write scope", func() {
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
+			_, err := service.Create("some-group-name", token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("requires the scim audience", func() {
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
+			_, err := service.Create("some-group-name", token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("must match the 'If-Match' header value", func() {
+			group.Version = 24
+			_, err := service.Update(group, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.BadRequestError{}))
+			Expect(err).To(MatchError(`bad request: {"error_description":"Missing If-Match for PUT","error":"scim"}`))
+		})
+
+		It("returns an error if the group does not exist", func() {
+			group.ID = "not-a-real-guid"
+			_, err := service.Update(group, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+		})
+
+		Context("failure cases", func() {
+			It("returns an error when the json response is malformed", func() {
+				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Write([]byte("this is not JSON"))
+				}))
+				service = warrant.NewGroupsService(warrant.Config{
+					Host:          malformedJSONServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.Update(warrant.Group{ID: "some-group-id"}, "some-token")
+				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
+				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
+			})
+		})
+	})
+
 	Describe("Get", func() {
 		var createdGroup warrant.Group
 
 		BeforeEach(func() {
 			var err error
-			createdGroup, err = service.Create("banana.write", token)
+			createdGroup, err = service.Create("created-group", token)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

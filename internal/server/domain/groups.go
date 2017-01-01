@@ -19,6 +19,10 @@ func (collection Groups) Get(id string) (group, bool) {
 	return g, ok
 }
 
+func (collection Groups) Update(g group) {
+	collection.store[g.ID] = g
+}
+
 func (collection Groups) All() []group {
 	var groups []group
 	for _, g := range collection.store {

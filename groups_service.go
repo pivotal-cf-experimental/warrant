@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/network"
@@ -40,6 +41,30 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 			Schemas:     schemas,
 		}),
 		AcceptableStatusCodes: []int{http.StatusCreated},
+	})
+	if err != nil {
+		return Group{}, translateError(err)
+	}
+
+	var response documents.GroupResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return Group{}, MalformedResponseError{err}
+	}
+
+	return newGroupFromResponse(gs.config, response), nil
+}
+
+// Update will make a request to UAA to update the matching group resource.
+// A token with the "scim.write" scope is required.
+func (gs GroupsService) Update(group Group, token string) (Group, error) {
+	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:        "PUT",
+		Path:          fmt.Sprintf("/Groups/%s", group.ID),
+		Authorization: network.NewTokenAuthorization(token),
+		IfMatch:       strconv.Itoa(group.Version),
+		Body:          network.NewJSONRequestBody(newUpdateGroupDocumentFromGroup(group)),
+		AcceptableStatusCodes: []int{http.StatusOK},
 	})
 	if err != nil {
 		return Group{}, translateError(err)
@@ -97,7 +122,9 @@ func (gs GroupsService) ListMembers(groupID, token string) ([]Member, error) {
 	var memberList []Member
 	for _, m := range response {
 		memberList = append(memberList, Member{
-			ID: m.Value,
+			Type:   m.Type,
+			Value:  m.Value,
+			Origin: m.Origin,
 		})
 	}
 
@@ -193,12 +220,26 @@ func (gs GroupsService) Delete(id, token string) error {
 	return nil
 }
 
-func newGroupFromResponse(config Config, response documents.GroupResponse) Group {
-	return Group{
-		ID:          response.ID,
-		DisplayName: response.DisplayName,
-		Version:     response.Meta.Version,
-		CreatedAt:   response.Meta.Created,
-		UpdatedAt:   response.Meta.LastModified,
+func newUpdateGroupDocumentFromGroup(group Group) documents.UpdateGroupRequest {
+	var members []documents.Member
+	for _, member := range group.Members {
+		members = append(members, documents.Member{
+			Origin: member.Origin,
+			Type:   member.Type,
+			Value:  member.Value,
+		})
+	}
+
+	return documents.UpdateGroupRequest{
+		Schemas:     schemas,
+		ID:          group.ID,
+		DisplayName: group.DisplayName,
+		Description: group.Description,
+		Members:     members,
+		Meta: documents.Meta{
+			Version:      group.Version,
+			Created:      group.CreatedAt,
+			LastModified: group.UpdatedAt,
+		},
 	}
 }
