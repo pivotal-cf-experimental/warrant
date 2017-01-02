@@ -12,8 +12,6 @@ import (
 )
 
 // TODO: Pagination for List
-// TODO: Update a group
-// TODO: Patch a group
 // TODO: Check membership
 
 // GroupsService provides access to common group actions. Using this service,
@@ -220,7 +218,7 @@ func (gs GroupsService) Delete(id, token string) error {
 	return nil
 }
 
-func newUpdateGroupDocumentFromGroup(group Group) documents.UpdateGroupRequest {
+func newUpdateGroupDocumentFromGroup(group Group) documents.CreateUpdateGroupRequest {
 	var members []documents.Member
 	for _, member := range group.Members {
 		members = append(members, documents.Member{
@@ -230,7 +228,7 @@ func newUpdateGroupDocumentFromGroup(group Group) documents.UpdateGroupRequest {
 		})
 	}
 
-	return documents.UpdateGroupRequest{
+	return documents.CreateUpdateGroupRequest{
 		Schemas:     schemas,
 		ID:          group.ID,
 		DisplayName: group.DisplayName,

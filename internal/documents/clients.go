@@ -10,6 +10,7 @@ type CreateUpdateClientRequest struct {
 	// for the client.
 	ClientSecret string `json:"client_secret"`
 
+	// Name is the human-friendly name given to a client resource.
 	Name string `json:"name"`
 
 	// Scope is a list of permission values to apply to user tokens that
@@ -46,6 +47,7 @@ type ClientResponse struct {
 	// ClientID is the unique identifier specifying the client.
 	ClientID string `json:"client_id"`
 
+	// Name is the human-friendly name given to a client resource.
 	Name string `json:"name"`
 
 	// Scope is a list of permission values to apply to user tokens that
@@ -77,13 +79,21 @@ type ClientResponse struct {
 }
 
 type ClientListResponse struct {
+	// Schemas is the list of schemas for this API request.
 	Schemas []string `json:"schemas"`
 
+	// Resources is a list of client resources.
 	Resources []ClientResponse `json:"resources"`
 
+	// StartIndex is the index number to start at when returning
+	// the list of resources.
 	StartIndex int `json:"startIndex"`
 
+	// ItemsPerPage is the number of items to return in the
+	// list of resources.
 	ItemsPerPage int `json:"itemsPerPage"`
 
+	// TotalResults is the total number of resources that match
+	// the list query.
 	TotalResults int `json:"totalResults"`
 }

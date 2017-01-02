@@ -10,8 +10,10 @@ type CreateGroupRequest struct {
 	// resource.
 	DisplayName string `json:"displayName"`
 
+	// Description is the human readable description of the group.
 	Description string `json:"description"`
 
+	// Members is the list of members to be included in the group.
 	Members []Member `json:"members"`
 }
 
@@ -28,9 +30,10 @@ type GroupResponse struct {
 	// resource.
 	DisplayName string `json:"displayName"`
 
-	//Description is the human readable description of the group.
+	// Description is the human readable description of the group.
 	Description string `json:"description"`
 
+	// Members is the list of members to be included in the group.
 	Members []Member `json:"members"`
 
 	// Meta is the collection of metadata describing the group
@@ -60,7 +63,9 @@ type GroupListResponse struct {
 	TotalResults int `json:"totalResults"`
 }
 
-type UpdateGroupRequest struct {
+// CreateUpdateGroupRequest represents the JSON transport data structure
+// for a request to create or update a group.
+type CreateUpdateGroupRequest struct {
 	// Schemas is the list of schemas for this API request.
 	Schemas []string `json:"schemas"`
 
@@ -68,10 +73,14 @@ type UpdateGroupRequest struct {
 	// the UAA service.
 	ID string `json:"id"`
 
+	// DisplayName is the human-friendly name given to a group
+	// resource.
 	DisplayName string `json:"displayName"`
 
+	// Description is the human readable description of the group.
 	Description string `json:"description"`
 
+	// Members is the list of members to be included in the group.
 	Members []Member `json:"members"`
 
 	// Meta is the set of metadata for this resource.

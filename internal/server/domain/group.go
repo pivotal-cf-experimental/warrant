@@ -44,7 +44,7 @@ func NewGroupFromCreateDocument(request documents.CreateGroupRequest) group {
 	}
 }
 
-func NewGroupFromUpdateDocument(request documents.UpdateGroupRequest) group {
+func NewGroupFromUpdateDocument(request documents.CreateUpdateGroupRequest) group {
 	var members []Member
 	for _, member := range request.Members {
 		members = append(members, Member{

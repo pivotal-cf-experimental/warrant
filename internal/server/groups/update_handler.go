@@ -43,7 +43,7 @@ func (h updateHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var document documents.UpdateGroupRequest
+	var document documents.CreateUpdateGroupRequest
 	err = json.Unmarshal(requestBody, &document)
 	if err != nil {
 		panic(err)
