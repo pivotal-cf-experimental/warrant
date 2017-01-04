@@ -65,7 +65,7 @@ var _ = Describe("Groups", func() {
 			members, err := client.Groups.ListMembers(group.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(members).To(HaveLen(1))
-			Expect(members[0].ID).To(Equal(user.ID))
+			Expect(members[0].Value).To(Equal(user.ID))
 
 			By("deleting the members")
 			err = client.Groups.RemoveMember(group.ID, user.ID, UAAToken)
