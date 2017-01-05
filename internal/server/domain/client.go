@@ -49,7 +49,7 @@ func (c Client) ToDocument() documents.ClientResponse {
 		Name:                 c.Name,
 		Scope:                shuffle(c.Scope),
 		ResourceIDs:          shuffle(c.ResourceIDs),
-		Authorities:          shuffle(c.Authorities),
+		Authorities:          c.Authorities,
 		AuthorizedGrantTypes: shuffle(c.AuthorizedGrantTypes),
 		Autoapprove:          shuffle(c.Autoapprove),
 		AccessTokenValidity:  c.AccessTokenValidity,

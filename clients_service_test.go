@@ -26,7 +26,10 @@ var _ = Describe("ClientsService", func() {
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewClientsService(config)
-		token = fakeUAA.ClientTokenFor("admin", []string{"clients.write", "clients.read"}, []string{"clients"})
+
+		var err error
+		token, err = service.GetToken("admin", "admin")
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Create/Get/Update", func() {
@@ -265,11 +268,13 @@ var _ = Describe("ClientsService", func() {
 			clients, err := service.List(warrant.Query{}, token)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(clients).To(HaveLen(2))
+			Expect(clients).To(HaveLen(3))
 			Expect(clients[0].ID).To(Equal("abc-client"))
 			Expect(clients[0].Name).To(Equal("other-client"))
-			Expect(clients[1].ID).To(Equal("xyz-client"))
-			Expect(clients[1].Name).To(Equal("client"))
+			Expect(clients[1].ID).To(Equal("admin"))
+			Expect(clients[1].Name).To(Equal("admin"))
+			Expect(clients[2].ID).To(Equal("xyz-client"))
+			Expect(clients[2].Name).To(Equal("client"))
 		})
 
 		It("returns a list of clients sorted by name", func() {
@@ -278,9 +283,10 @@ var _ = Describe("ClientsService", func() {
 			}, token)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(clients).To(HaveLen(2))
-			Expect(clients[0].Name).To(Equal("client"))
-			Expect(clients[1].Name).To(Equal("other-client"))
+			Expect(clients).To(HaveLen(3))
+			Expect(clients[0].ID).To(Equal("admin"))
+			Expect(clients[1].Name).To(Equal("client"))
+			Expect(clients[2].Name).To(Equal("other-client"))
 		})
 
 		It("errors when the token is unauthorized", func() {
