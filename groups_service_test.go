@@ -197,6 +197,74 @@ var _ = Describe("GroupsService", func() {
 		})
 	})
 
+	Describe("CheckMembership", func() {
+		var group warrant.Group
+		var member warrant.Member
+
+		BeforeEach(func() {
+			var err error
+			group, err = service.Create("some-group", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			member = warrant.Member{
+				Value:  "some-member-id",
+				Type:   "USER",
+				Origin: "uaa",
+			}
+		})
+
+		It("returns OK if the member belongs to the group", func() {
+			members, err := service.ListMembers(group.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(HaveLen(0))
+
+			_, err = service.AddMember(group.ID, member.Value, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			members, err = service.ListMembers(group.ID, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(HaveLen(1))
+
+			found, err := service.CheckMembership(group.ID, member.Value, token)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(found).To(Equal(member))
+		})
+
+		It("requires the scim.read scope", func() {
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
+			_, err := service.CheckMembership(group.ID, member.Value, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		It("requires the scim audience", func() {
+			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
+			_, err := service.CheckMembership(group.ID, member.Value, token)
+			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		})
+
+		Context("failure cases", func() {
+			It("returns an error when the group is not found or the user is not a member", func() {
+				_, err := service.CheckMembership(group.ID, member.Value, token)
+				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+			})
+
+			It("returns an error when the json response is malformed", func() {
+				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Write([]byte("this is not JSON"))
+				}))
+				service = warrant.NewGroupsService(warrant.Config{
+					Host:          malformedJSONServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.CheckMembership("some-group-id", "some-member-id", "some-token")
+				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
+				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
+			})
+		})
+	})
+
 	Describe("Delete", func() {
 		var group warrant.Group
 

@@ -79,8 +79,8 @@ func (gs GroupsService) Update(group Group, token string) (Group, error) {
 
 // AddMember will make a request to UAA to add a member to the group resource with the matching id.
 // A token with the "scim.write" scope is required.
-func (gs GroupsService) AddMember(groupID, memberID, token string) error {
-	_, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+func (gs GroupsService) AddMember(groupID, memberID, token string) (Member, error) {
+	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:        "POST",
 		Path:          fmt.Sprintf("/Groups/%s/members", groupID),
 		Authorization: network.NewTokenAuthorization(token),
@@ -92,10 +92,36 @@ func (gs GroupsService) AddMember(groupID, memberID, token string) error {
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
 	if err != nil {
-		return translateError(err)
+		return Member{}, translateError(err)
 	}
 
-	return nil
+	var response documents.MemberResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return Member{}, MalformedResponseError{err}
+	}
+
+	return newMemberFromResponse(gs.config, response), nil
+}
+
+func (gs GroupsService) CheckMembership(groupID, memberID, token string) (Member, error) {
+	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
+		Method:                "GET",
+		Path:                  fmt.Sprintf("/Groups/%s/members/%s", groupID, memberID),
+		Authorization:         network.NewTokenAuthorization(token),
+		AcceptableStatusCodes: []int{http.StatusOK},
+	})
+	if err != nil {
+		return Member{}, translateError(err)
+	}
+
+	var response documents.MemberResponse
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return Member{}, MalformedResponseError{err}
+	}
+
+	return newMemberFromResponse(gs.config, response), nil
 }
 
 // ListMembers will make a request to UAA to fetch the members of a group resource with the matching id.
@@ -111,19 +137,15 @@ func (gs GroupsService) ListMembers(groupID, token string) ([]Member, error) {
 		return nil, translateError(err)
 	}
 
-	var response []documents.Member
+	var response documents.MemberListResponse
 	err = json.Unmarshal(resp.Body, &response)
 	if err != nil {
 		return nil, MalformedResponseError{err}
 	}
 
 	var memberList []Member
-	for _, m := range response {
-		memberList = append(memberList, Member{
-			Type:   m.Type,
-			Value:  m.Value,
-			Origin: m.Origin,
-		})
+	for _, m := range response.Resources {
+		memberList = append(memberList, newMemberFromResponse(gs.config, m))
 	}
 
 	return memberList, nil
