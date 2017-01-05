@@ -19,7 +19,6 @@ type Query struct {
 	SortBy string
 }
 
-// TODO: Score password strength
 // TODO: Verify a user
 // TODO: Query for user info
 // TODO: Convert user ids to names
