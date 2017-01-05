@@ -225,27 +225,29 @@ var _ = Describe("GroupsService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(members).To(HaveLen(1))
 
-			found, err := service.CheckMembership(group.ID, member.Value, token)
+			foundMember, found, err := service.CheckMembership(group.ID, member.Value, token)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(found).To(Equal(member))
+			Expect(foundMember).To(Equal(member))
+			Expect(found).To(BeTrue())
 		})
 
 		It("requires the scim.read scope", func() {
 			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
-			_, err := service.CheckMembership(group.ID, member.Value, token)
+			_, _, err := service.CheckMembership(group.ID, member.Value, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		It("requires the scim audience", func() {
 			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
-			_, err := service.CheckMembership(group.ID, member.Value, token)
+			_, _, err := service.CheckMembership(group.ID, member.Value, token)
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
 
 		Context("failure cases", func() {
 			It("returns an error when the group is not found or the user is not a member", func() {
-				_, err := service.CheckMembership(group.ID, member.Value, token)
-				Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+				_, found, err := service.CheckMembership(group.ID, member.Value, token)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(found).To(BeFalse())
 			})
 
 			It("returns an error when the json response is malformed", func() {
@@ -258,7 +260,7 @@ var _ = Describe("GroupsService", func() {
 					TraceWriter:   TraceWriter,
 				})
 
-				_, err := service.CheckMembership("some-group-id", "some-member-id", "some-token")
+				_, _, err := service.CheckMembership("some-group-id", "some-member-id", "some-token")
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
 			})

@@ -42,26 +42,26 @@ func (collection *Groups) Clear() {
 	collection.store = make(map[string]group)
 }
 
-func (collection Groups) AddMember(id string, member Member) bool {
-	g, ok := collection.store[id]
+func (collection Groups) AddMember(id string, member Member) (Member, bool) {
+	group, ok := collection.store[id]
 	if !ok {
-		return false
+		return Member{}, false
 	}
 
-	g.Members = append(g.Members, member)
-	collection.store[id] = g
+	group.Members = append(group.Members, member)
+	collection.store[id] = group
 
-	return true
+	return member, true
 }
 
 func (collection Groups) ListMembers(id string) ([]Member, bool) {
-	g, ok := collection.store[id]
+	group, ok := collection.store[id]
 	if !ok {
 		return []Member{}, false
 	}
 
 	var members []Member
-	for _, m := range g.Members {
+	for _, m := range group.Members {
 		members = append(members, m)
 	}
 

@@ -26,11 +26,10 @@ func (h listMembersHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	list := domain.MembersList{}
-
 	matches := regexp.MustCompile(`/Groups/(.*)/members$`).FindStringSubmatch(req.URL.Path)
 	id := matches[1]
 
+	list := domain.MembersList{}
 	list, ok := h.groups.ListMembers(id)
 	if !ok {
 		common.NotFound(w, fmt.Sprintf("Group %s does not exist", id))
@@ -43,5 +42,5 @@ func (h listMembersHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	w.Write([]byte(response))
 }

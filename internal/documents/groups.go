@@ -14,7 +14,7 @@ type CreateGroupRequest struct {
 	Description string `json:"description"`
 
 	// Members is the list of members to be included in the group.
-	Members []Member `json:"members"`
+	Members []CreateMemberRequest `json:"members"`
 }
 
 // GroupResponse represents the JSON transport data structure
@@ -34,7 +34,7 @@ type GroupResponse struct {
 	Description string `json:"description"`
 
 	// Members is the list of members to be included in the group.
-	Members []Member `json:"members"`
+	Members []MemberResponse `json:"members"`
 
 	// Meta is the collection of metadata describing the group
 	// resource.
@@ -81,7 +81,7 @@ type CreateUpdateGroupRequest struct {
 	Description string `json:"description"`
 
 	// Members is the list of members to be included in the group.
-	Members []Member `json:"members"`
+	Members []CreateMemberRequest `json:"members"`
 
 	// Meta is the set of metadata for this resource.
 	Meta Meta `json:"meta"`

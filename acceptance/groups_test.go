@@ -50,31 +50,50 @@ var _ = Describe("Groups", func() {
 
 	Describe("Membership", func() {
 		It("adds, lists, and deletes members from a group", func() {
-			By("creating a group")
-			group, err = ensureGroupExists(client, "banana.read", UAAToken)
-			Expect(err).NotTo(HaveOccurred())
+			var (
+				user    warrant.User
+				members []warrant.Member
+				err     error
+			)
 
-			By("creating a user")
-			user, err := ensureUserExists(client, "a-user", "email", UAAToken)
-			Expect(err).NotTo(HaveOccurred())
+			By("creating a group", func() {
+				group, err = ensureGroupExists(client, "banana.read", UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-			By("adding a member")
-			client.Groups.AddMember(group.ID, user.ID, UAAToken)
+			By("creating a user", func() {
+				user, err = ensureUserExists(client, "a-user", "email", UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-			By("listing the members")
-			members, err := client.Groups.ListMembers(group.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(members).To(HaveLen(1))
-			Expect(members[0].Value).To(Equal(user.ID))
+			By("adding a member", func() {
+				client.Groups.AddMember(group.ID, user.ID, UAAToken)
+			})
 
-			By("deleting the members")
-			err = client.Groups.RemoveMember(group.ID, user.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
+			By("listing the members", func() {
+				members, err = client.Groups.ListMembers(group.ID, UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(members).To(HaveLen(1))
+				Expect(members[0].Value).To(Equal(user.ID))
+			})
 
-			By("checking the group does not have the deleted member")
-			members, err = client.Groups.ListMembers(group.ID, UAAToken)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(members).To(HaveLen(0))
+			By("checking the group has the member", func() {
+				member, found, err := client.Groups.CheckMembership(group.ID, user.ID, UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(member.Value).To(Equal(user.ID))
+				Expect(found).To(BeTrue())
+			})
+
+			By("deleting the members", func() {
+				err = client.Groups.RemoveMember(group.ID, user.ID, UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			By("checking the group does not have the deleted member", func() {
+				_, found, err := client.Groups.CheckMembership(group.ID, user.ID, UAAToken)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(found).To(BeFalse())
+			})
 		})
 	})
 })

@@ -4,17 +4,12 @@ import "github.com/pivotal-cf-experimental/warrant/internal/documents"
 
 type MembersList []Member
 
-func (ml MembersList) ToDocument() documents.MemberListResponse {
-	doc := documents.MemberListResponse{
-		ItemsPerPage: 100,
-		StartIndex:   1,
-		TotalResults: len(ml),
-		Schemas:      schemas,
-	}
+func (ml MembersList) ToDocument() []documents.MemberResponse {
+	members := []documents.MemberResponse{}
 
 	for _, member := range ml {
-		doc.Resources = append(doc.Resources, member.ToDocument())
+		members = append(members, member.ToDocument())
 	}
 
-	return doc
+	return members
 }

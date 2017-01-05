@@ -66,9 +66,9 @@ func NewGroupFromUpdateDocument(request documents.CreateUpdateGroupRequest) grou
 }
 
 func (g group) ToDocument() documents.GroupResponse {
-	var members []documents.Member
+	var members []documents.MemberResponse
 	for _, member := range g.Members {
-		members = append(members, documents.Member{
+		members = append(members, documents.MemberResponse{
 			Value:  member.Value,
 			Type:   member.Type,
 			Origin: member.Origin,

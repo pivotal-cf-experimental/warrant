@@ -10,11 +10,11 @@ type Member struct {
 	Value  string
 }
 
-func NewMemberFromDocument(request documents.Member) Member {
+func NewMemberFromDocument(document documents.CreateMemberRequest) Member {
 	return Member{
-		Type:   request.Type,
-		Value:  request.Value,
-		Origin: request.Origin,
+		Type:   document.Type,
+		Value:  document.Value,
+		Origin: document.Origin,
 	}
 }
 

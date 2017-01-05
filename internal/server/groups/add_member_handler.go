@@ -45,15 +45,13 @@ func (h addMemberHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var document documents.Member
+	var document documents.CreateMemberRequest
 	err = json.Unmarshal(requestBody, &document)
 	if err != nil {
 		panic(err)
 	}
 
-	member := domain.NewMemberFromDocument(document)
-
-	ok := h.groups.AddMember(id, member)
+	member, ok := h.groups.AddMember(id, domain.NewMemberFromDocument(document))
 	if !ok {
 		common.JSONError(w, http.StatusNotFound, fmt.Sprintf("Group %s does not exist", id), "scim_resource_not_found")
 		return

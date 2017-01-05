@@ -43,6 +43,10 @@ var _ = Describe("Client", func() {
 			}
 
 			receivedRequest.Header = req.Header
+
+			if req.URL.Path == "/missing-path" {
+				w.WriteHeader(http.StatusNotFound)
+			}
 		}))
 
 		client = network.NewClient(network.Config{
@@ -105,6 +109,16 @@ var _ = Describe("Client", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 			}
+		})
+
+		It("can specify that 404 is an acceptable response code", func() {
+			_, err := client.MakeRequest(network.Request{
+				Method:                "GET",
+				Path:                  "/missing-path",
+				Authorization:         network.NewTokenAuthorization(token),
+				AcceptableStatusCodes: []int{http.StatusNotFound},
+			})
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("Following redirects", func() {
