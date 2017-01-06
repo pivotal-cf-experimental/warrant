@@ -120,19 +120,6 @@ func (s *UAA) ResetDefaultScopes() {
 	s.tokens.DefaultScopes = defaultScopes
 }
 
-// ClientTokenFor returns a client token with the given id,
-// scopes, and audiences.
-func (s *UAA) ClientTokenFor(clientID string, authorities, audiences []string) string {
-	// TODO: remove from API so that tokens are fetched like
-	// they would be with a real UAA server.
-
-	return s.tokens.Encrypt(domain.Token{
-		ClientID:    clientID,
-		Authorities: authorities,
-		Audiences:   audiences,
-	})
-}
-
 // UserTokenFor returns a user token with the given id,
 // scopes, and audiences.
 func (s *UAA) UserTokenFor(userID string, scopes, audiences []string) string {
