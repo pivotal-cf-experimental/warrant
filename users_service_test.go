@@ -452,32 +452,74 @@ var _ = Describe("UsersService", func() {
 			userToken = fakeUAA.UserTokenFor(user.ID, []string{}, []string{})
 		})
 
-		It("changes the password given the old password", func() {
-			err := service.ChangePassword(user.ID, "old-password", "new-password", userToken)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("does not change password if the old password does not match", func() {
-			err := service.ChangePassword(user.ID, "bad-password", "new-password", userToken)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
-		})
-
-		Context("with a client token", func() {
-			It("changes the password regardless of the old password", func() {
-				err := service.ChangePassword(user.ID, "bad-password", "new-password", token)
+		Context("with a user token", func() {
+			It("changes the password given the old password", func() {
+				err := service.ChangePassword(user.ID, "old-password", "new-password", userToken)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("requires the password.write scope", func() {
-				token = fakeUAA.ClientTokenFor("admin", []string{"password.banana"}, []string{"password"})
-				err := service.ChangePassword(user.ID, "old-password", "new-password", token)
+			It("does not change password if the old password does not match", func() {
+				err := service.ChangePassword(user.ID, "bad-password", "new-password", userToken)
 				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 			})
+		})
 
-			It("requires the password audience", func() {
-				token = fakeUAA.ClientTokenFor("admin", []string{"password.write"}, []string{"banana"})
-				err := service.ChangePassword(user.ID, "old-password", "new-password", token)
-				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("with a client token", func() {
+			Context("when it has the password.write scope and password audience", func() {
+				It("changes the password regardless of the old password", func() {
+					c := warrant.Client{
+						ID:          "authorized",
+						ResourceIDs: []string{"password"},
+						Authorities: []string{"password.write"},
+					}
+
+					err := clientsService.Create(c, "secret", token)
+					Expect(err).NotTo(HaveOccurred())
+
+					t, err := clientsService.GetToken(c.ID, "secret")
+					Expect(err).NotTo(HaveOccurred())
+
+					err = service.ChangePassword(user.ID, "bad-password", "new-password", t)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			Context("when the client does not have the password.write scope", func() {
+				It("returns an unauthorized error", func() {
+					c := warrant.Client{
+						ID:          "authorized",
+						ResourceIDs: []string{"password"},
+						Authorities: []string{"password.read"},
+					}
+
+					err := clientsService.Create(c, "secret", token)
+					Expect(err).NotTo(HaveOccurred())
+
+					t, err := clientsService.GetToken(c.ID, "secret")
+					Expect(err).NotTo(HaveOccurred())
+
+					err = service.ChangePassword(user.ID, "old-password", "new-password", t)
+					Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+				})
+			})
+
+			Context("when the client does not have the password audience", func() {
+				It("returns an unauthorized error", func() {
+					c := warrant.Client{
+						ID:          "authorized",
+						ResourceIDs: []string{"banana"},
+						Authorities: []string{"password.write"},
+					}
+
+					err := clientsService.Create(c, "secret", token)
+					Expect(err).NotTo(HaveOccurred())
+
+					t, err := clientsService.GetToken(c.ID, "secret")
+					Expect(err).NotTo(HaveOccurred())
+
+					err = service.ChangePassword(user.ID, "old-password", "new-password", t)
+					Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+				})
 			})
 		})
 	})
