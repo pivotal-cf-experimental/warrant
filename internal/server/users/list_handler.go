@@ -17,6 +17,8 @@ type listHandler struct {
 	users *domain.Users
 }
 
+//TODO: check scim.read scope (or uaa.admin) and scim audience
+
 func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
