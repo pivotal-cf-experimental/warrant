@@ -14,9 +14,10 @@ import (
 
 var _ = Describe("GroupsService", func() {
 	var (
-		service warrant.GroupsService
-		token   string
-		config  warrant.Config
+		service        warrant.GroupsService
+		clientsService warrant.ClientsService
+		token          string
+		config         warrant.Config
 	)
 
 	BeforeEach(func() {
@@ -26,7 +27,12 @@ var _ = Describe("GroupsService", func() {
 			TraceWriter:   TraceWriter,
 		}
 		service = warrant.NewGroupsService(config)
-		token = fakeUAA.ClientTokenFor("admin", []string{"scim.write", "scim.read"}, []string{"scim"})
+
+		clientsService = warrant.NewClientsService(config)
+
+		var err error
+		token, err = clientsService.GetToken("admin", "admin")
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Describe("Create", func() {
@@ -40,16 +46,42 @@ var _ = Describe("GroupsService", func() {
 			Expect(group.UpdatedAt).To(BeTemporally("~", time.Now().UTC(), 2*time.Millisecond))
 		})
 
-		It("requires the scim.write scope", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
-			_, err := service.Create("banana.write", token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim.write scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.read"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Create("some-group", t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
-		It("requires the scim audience", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
-			_, err := service.Create("banana.write", token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Create("some-group", t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
 		Context("failure cases", func() {
@@ -103,16 +135,42 @@ var _ = Describe("GroupsService", func() {
 			Expect(fetchedGroup).To(Equal(updatedGroup))
 		})
 
-		It("requires the scim.write scope", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
-			_, err := service.Create("some-group-name", token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim.write scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.read"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Update(group, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
-		It("requires the scim audience", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
-			_, err := service.Create("some-group-name", token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Update(group, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
 		It("must match the 'If-Match' header value", func() {
@@ -161,16 +219,42 @@ var _ = Describe("GroupsService", func() {
 			Expect(group).To(Equal(createdGroup))
 		})
 
-		It("requires the scim.read scope", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
-			_, err := service.Get(createdGroup.ID, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim.read scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Get(createdGroup.ID, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
-		It("requires the scim audience", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
-			_, err := service.Get(createdGroup.ID, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.read"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.Get(createdGroup.ID, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
 		Context("failure cases", func() {
@@ -231,16 +315,42 @@ var _ = Describe("GroupsService", func() {
 			Expect(found).To(BeTrue())
 		})
 
-		It("requires the scim.read scope", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"scim"})
-			_, _, err := service.CheckMembership(group.ID, member.Value, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim.read scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, err = service.CheckMembership(group.ID, member.Value, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
-		It("requires the scim audience", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"banana"})
-			_, _, err := service.CheckMembership(group.ID, member.Value, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.read"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, err = service.CheckMembership(group.ID, member.Value, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
 		Context("failure cases", func() {
@@ -284,16 +394,42 @@ var _ = Describe("GroupsService", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("requires the scim.write scope", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.read"}, []string{"scim"})
-			err := service.Delete(group.ID, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim.write scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.read"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = service.Delete(group.ID, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
-		It("requires the scim audience", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"scim.write"}, []string{"banana"})
-			err := service.Delete(group.ID, token)
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = service.Delete(group.ID, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
 		})
 
 		It("returns an error when the group does not exist", func() {
@@ -368,6 +504,44 @@ var _ = Describe("GroupsService", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(groups).To(HaveLen(0))
+			})
+		})
+
+		Context("when the client does not have the scim.read scope", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"scim"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.List(warrant.Query{}, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			})
+		})
+
+		Context("when the client does not have the scim audience", func() {
+			It("returns an unauthorized error", func() {
+				c := warrant.Client{
+					ID:          "unauthorized",
+					ResourceIDs: []string{"banana"},
+					Authorities: []string{"scim.write"},
+				}
+
+				err := clientsService.Create(c, "secret", token)
+				Expect(err).NotTo(HaveOccurred())
+
+				t, err := clientsService.GetToken(c.ID, "secret")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = service.List(warrant.Query{}, t)
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 			})
 		})
 
