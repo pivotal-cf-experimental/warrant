@@ -7,6 +7,8 @@ var ADMIN_CLIENT = Client{
 	Scope:  []string{},
 	ResourceIDs: []string{
 		"clients", //TODO: This is not needed, but checked in some handlers incorrectly
+		"password",
+		"scim",
 	},
 	Authorities: []string{
 		"clients.read",

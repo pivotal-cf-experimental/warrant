@@ -61,7 +61,7 @@ var _ = Describe("listHandler", func() {
 					"client_id": "admin",
 					"name": "admin",
 					"scope": [],
-					"resource_ids": ["clients"],
+					"resource_ids": ["clients", "password", "scim"],
 					"authorities": ["clients.read", "clients.write", "clients.secret", "password.write", "uaa.admin", "scim.read", "scim.write"],
 					"authorized_grant_types": ["client_credentials"],
 					"autoapprove": [],
