@@ -105,7 +105,7 @@ func (us UsersService) Delete(id, token string) error {
 }
 
 // Update will make a request to UAA to update the matching user resource.
-// A token with the "scim.write" scope is required.
+// A token with the "scim.write" or "uaa.admin" scope is required.
 func (us UsersService) Update(user User, token string) (User, error) {
 	resp, err := newNetworkClient(us.config).MakeRequest(network.Request{
 		Method:        "PUT",
@@ -201,7 +201,7 @@ func (us UsersService) GetToken(username, password string, client Client) (strin
 }
 
 // List will make a request to UAA to retrieve all user resources matching the given query.
-// A token with the "scim.read" scope is required.
+// A token with the "scim.read" or "uaa.admin" scope is required.
 func (us UsersService) List(query Query, token string) ([]User, error) {
 	requestPath := url.URL{
 		Path: "/Users",

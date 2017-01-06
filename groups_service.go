@@ -12,7 +12,6 @@ import (
 )
 
 // TODO: Pagination for List
-// TODO: Check membership
 
 // GroupsService provides access to common group actions. Using this service,
 // you can create, delete, fetch and list group resources.
@@ -54,7 +53,7 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 }
 
 // Update will make a request to UAA to update the matching group resource.
-// A token with the "scim.write" scope is required.
+// A token with the "scim.write" or "groups.update" scope is required.
 func (gs GroupsService) Update(group Group, token string) (Group, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:        "PUT",
@@ -104,6 +103,8 @@ func (gs GroupsService) AddMember(groupID, memberID, token string) (Member, erro
 	return newMemberFromResponse(gs.config, response), nil
 }
 
+// CheckMembership will make a request to UAA to fetch a member resource from a group resource.
+// A token with the "scim.read" scope is required.
 func (gs GroupsService) CheckMembership(groupID, memberID, token string) (Member, bool, error) {
 	resp, err := newNetworkClient(gs.config).MakeRequest(network.Request{
 		Method:                "GET",

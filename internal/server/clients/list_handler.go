@@ -18,6 +18,7 @@ type listHandler struct {
 	tokens  *domain.Tokens
 }
 
+// TODO: check for client.admin scope
 func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	token := req.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
