@@ -207,8 +207,15 @@ var _ = Describe("ClientsService", func() {
 		})
 
 		It("errors when the token is unauthorized", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
-			err := service.Delete(client.ID, token)
+			unauthorizedClient := warrant.Client{ID: "unauthorized-client"}
+
+			err := service.Create(unauthorizedClient, "secret", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			unauthorizedToken, err := service.GetToken(unauthorizedClient.ID, "secret")
+			Expect(err).NotTo(HaveOccurred())
+
+			err = service.Delete(client.ID, unauthorizedToken)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
@@ -290,8 +297,15 @@ var _ = Describe("ClientsService", func() {
 		})
 
 		It("errors when the token is unauthorized", func() {
-			token = fakeUAA.ClientTokenFor("admin", []string{"clients.foo", "clients.boo"}, []string{"clients"})
-			err := service.Delete(client.ID, token)
+			unauthorizedClient := warrant.Client{ID: "unauthorized-client"}
+
+			err := service.Create(unauthorizedClient, "secret", token)
+			Expect(err).NotTo(HaveOccurred())
+
+			unauthorizedToken, err := service.GetToken(unauthorizedClient.ID, "secret")
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = service.List(warrant.Query{}, unauthorizedToken)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
 		})
