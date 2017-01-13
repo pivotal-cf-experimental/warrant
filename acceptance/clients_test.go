@@ -35,8 +35,11 @@ var _ = Describe("Client Lifecycle", func() {
 	})
 
 	AfterEach(func() {
-		err := warrantClient.Clients.Delete(client.ID, UAAToken)
-		Expect(err).NotTo(HaveOccurred())
+		_, err := warrantClient.Clients.Get(client.ID, UAAToken)
+		if err == nil {
+			err := warrantClient.Clients.Delete(client.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		}
 	})
 
 	It("creates, and retrieves a client", func() {
@@ -65,6 +68,72 @@ var _ = Describe("Client Lifecycle", func() {
 			fetchedClient, err := warrantClient.Clients.Get(client.ID, UAAToken)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fetchedClient).To(Equal(client))
+		})
+	})
+
+	Context("when there is more than one client", func() {
+		var (
+			client1, client2, client3 warrant.Client
+		)
+
+		BeforeEach(func() {
+			client1 = warrant.Client{
+				ID:                   "warrant-client-one",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          []string{},
+			}
+			err := warrantClient.Clients.Create(client1, "secret", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			client2 = warrant.Client{
+				ID:                   "warrant-client-two",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          []string{},
+			}
+			err = warrantClient.Clients.Create(client2, "secret", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			client3 = warrant.Client{
+				ID:                   "warrant-client-three",
+				Scope:                []string{"openid"},
+				ResourceIDs:          []string{"none"},
+				Authorities:          []string{"scim.read", "scim.write"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+				RedirectURI:          []string{"https://redirect.example.com"},
+				Autoapprove:          []string{},
+			}
+			err = warrantClient.Clients.Create(client3, "secret", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			err := warrantClient.Clients.Delete(client1.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = warrantClient.Clients.Delete(client2.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = warrantClient.Clients.Delete(client3.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("lists clients", func() {
+			clients, err := warrantClient.Clients.List(warrant.Query{
+				Filter: "client_id co 'warrant-client'",
+			}, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(clients).To(HaveLen(3))
 		})
 	})
 
