@@ -14,12 +14,29 @@ import (
 )
 
 type listHandler struct {
-	users *domain.Users
+	users  *domain.Users
+	tokens *domain.Tokens
 }
 
 //TODO: check scim.read scope (or uaa.admin) and scim audience
 
 func (h listHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	token := req.Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
+	token = strings.TrimPrefix(token, "bearer ")
+
+	if len(token) == 0 {
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		return
+	}
+	if ok := h.tokens.Validate(token, domain.Token{
+		Authorities: []string{"scim.read"},
+		Audiences:   []string{"scim"},
+	}); !ok {
+		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
+		return
+	}
+
 	query, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
 		panic(err)

@@ -92,4 +92,39 @@ var _ = Describe("User Lifecycle", func() {
 			Expect(err).To(BeAssignableToTypeOf(warrant.DuplicateResourceError{}))
 		})
 	})
+
+	Context("when clients do not have scim.read scope or scim audience to list users", func() {
+		var unauthorizedToken string
+		var unauthorizedClient warrant.Client
+
+		BeforeEach(func() {
+			unauthorizedClient = warrant.Client{
+				ID:                   "unauthorized-client",
+				Authorities:          []string{"scim.nope"},
+				ResourceIDs:          []string{"banana"},
+				AuthorizedGrantTypes: []string{"client_credentials"},
+				AccessTokenValidity:  5000 * time.Second,
+			}
+
+			err := client.Clients.Create(unauthorizedClient, "secret", UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			unauthorizedToken, err = client.Clients.GetToken(unauthorizedClient.ID, "secret")
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			err := client.Clients.Delete(unauthorizedClient.ID, UAAToken)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = client.Clients.Get(unauthorizedClient.ID, UAAToken)
+			Expect(err).To(BeAssignableToTypeOf(warrant.NotFoundError{}))
+		})
+
+		It("returns error forbidden", func() {
+			_, err := client.Users.List(warrant.Query{}, unauthorizedToken)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeAssignableToTypeOf(warrant.ForbiddenError{}))
+		})
+	})
 })

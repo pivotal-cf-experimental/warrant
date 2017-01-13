@@ -170,8 +170,12 @@ func (c Client) handleResponse(request Request, response Response) (Response, er
 		return Response{}, newNotFoundError(response.Body)
 	}
 
-	if response.Code == http.StatusUnauthorized || response.Code == http.StatusForbidden {
+	if response.Code == http.StatusUnauthorized {
 		return Response{}, newUnauthorizedError(response.Body)
+	}
+
+	if response.Code == http.StatusForbidden {
+		return Response{}, newForbiddenError(response.Code, response.Body)
 	}
 
 	return Response{}, newUnexpectedStatusError(response.Code, response.Body)

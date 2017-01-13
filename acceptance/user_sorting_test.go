@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = PDescribe("User Sorting", func() {
+var _ = Describe("User Sorting", func() {
 	var (
 		client    warrant.Warrant
 		user      warrant.User
@@ -48,9 +48,9 @@ var _ = PDescribe("User Sorting", func() {
 		Expect(user.Verified).To(BeTrue())
 		Expect(user.Origin).To(Equal("uaa"))
 
-		otherUser, err = client.Users.Create(UAADefaultUsername, "abc@example.com", UAAToken)
+		otherUser, err = client.Users.Create("warrant-user-2", "abc@example.com", UAAToken)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(otherUser.UserName).To(Equal(UAADefaultUsername))
+		Expect(otherUser.UserName).To(Equal("warrant-user-2"))
 		Expect(otherUser.Emails).To(ConsistOf([]string{"abc@example.com"}))
 		Expect(otherUser.CreatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
 		Expect(otherUser.UpdatedAt).To(BeTemporally("~", time.Now().UTC(), 10*time.Minute))
@@ -60,6 +60,7 @@ var _ = PDescribe("User Sorting", func() {
 		Expect(otherUser.Origin).To(Equal("uaa"))
 
 		allUsers, err := client.Users.List(warrant.Query{
+			Filter: "userName co 'warrant-user'",
 			SortBy: "email",
 		}, UAAToken)
 		Expect(err).NotTo(HaveOccurred())

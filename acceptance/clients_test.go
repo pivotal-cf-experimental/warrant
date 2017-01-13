@@ -110,7 +110,7 @@ var _ = Describe("Client Lifecycle", func() {
 		By("using the new client token to delete the client", func() {
 			err := warrantClient.Clients.Delete(client.ID, token)
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			Expect(err).To(BeAssignableToTypeOf(warrant.ForbiddenError{}))
 		})
 	})
 })
