@@ -69,7 +69,7 @@ func NewUAA() *UAA {
 	router.Handle("/Groups{a:.*}", groups.NewRouter(groupsCollection, tokensCollection))
 	router.Handle("/oauth/clients{a:.*}", clients.NewRouter(clientsCollection, tokensCollection))
 	router.Handle("/oauth{a:.*}", tokenRouter)
-	router.Handle("/token_key", tokenRouter)
+	router.Handle("/token_key{a:.*}", tokenRouter)
 
 	return uaa
 }

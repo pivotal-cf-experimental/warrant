@@ -132,4 +132,23 @@ var _ = Describe("Tokens", func() {
 			Expect(block.Type).To(Equal("PUBLIC KEY"))
 		})
 	})
+
+	Context("fetching the signing keys", func() {
+		It("can fetch multiple signing keys from the server", func() {
+			signingKeys, err := warrantClient.Tokens.GetSigningKeys()
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(signingKeys).NotTo(BeEmpty())
+
+			for _, key := range signingKeys {
+				Expect(key.Algorithm).To(Equal("SHA256withRSA"))
+				Expect(key.KeyId).ToNot(BeEmpty())
+				Expect(key.Value).ToNot(BeEmpty())
+
+				block, _ := pem.Decode([]byte(key.Value))
+				Expect(block).NotTo(BeNil())
+				Expect(block.Type).To(Equal("PUBLIC KEY"))
+			}
+		})
+	})
 })

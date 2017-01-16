@@ -70,6 +70,7 @@ var _ = Describe("TokensService", func() {
 			key, err := service.GetSigningKey()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(key).To(Equal(warrant.SigningKey{
+				KeyId:     "legacy-token-key",
 				Algorithm: "SHA256withRSA",
 				Value:     common.TestPublicKey,
 			}))
@@ -103,6 +104,58 @@ var _ = Describe("TokensService", func() {
 				})
 
 				_, err := service.GetSigningKey()
+				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
+				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
+			})
+		})
+	})
+
+	Describe("GetSigningKeys", func() {
+		It("returns the public key, used to sign tokens", func() {
+			key, err := service.GetSigningKeys()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(key).To(ConsistOf([]warrant.SigningKey{
+				{
+					KeyId:     "legacy-token-key",
+					Algorithm: "SHA256withRSA",
+					Value:     common.TestPublicKey,
+				},
+				{
+					KeyId:     "token-key",
+					Algorithm: "SHA256withRSA",
+					Value:     common.TestPublicKey,
+				},
+			}))
+		})
+
+		Context("failure cases", func() {
+			It("returns an error if the HTTP request fails", func() {
+				erroringServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.WriteHeader(http.StatusInternalServerError)
+				}))
+
+				service = warrant.NewTokensService(warrant.Config{
+					Host:          erroringServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.GetSigningKeys()
+				Expect(err).To(BeAssignableToTypeOf(warrant.UnexpectedStatusError{}))
+			})
+
+			It("returns an error if the response JSON cannot be parsed", func() {
+				malformedJSONServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Write([]byte("this is not JSON"))
+				}))
+
+				service = warrant.NewTokensService(warrant.Config{
+					Host:          malformedJSONServer.URL,
+					SkipVerifySSL: true,
+					TraceWriter:   TraceWriter,
+				})
+
+				_, err := service.GetSigningKeys()
 				Expect(err).To(BeAssignableToTypeOf(warrant.MalformedResponseError{}))
 				Expect(err).To(MatchError("malformed response: invalid character 'h' in literal true (expecting 'r')"))
 			})
