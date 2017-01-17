@@ -35,7 +35,6 @@ func (gs GroupsService) Create(displayName, token string) (Group, error) {
 		Authorization: network.NewTokenAuthorization(token),
 		Body: network.NewJSONRequestBody(documents.CreateGroupRequest{
 			DisplayName: displayName,
-			Schemas:     schemas,
 		}),
 		AcceptableStatusCodes: []int{http.StatusCreated},
 	})
