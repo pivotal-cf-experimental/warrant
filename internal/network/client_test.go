@@ -468,7 +468,7 @@ var _ = Describe("Client", func() {
 				}
 				_, err := client.MakeRequest(requestArgs)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(BeAssignableToTypeOf(network.UnauthorizedError{}))
+				Expect(err).To(BeAssignableToTypeOf(network.ForbiddenError{}))
 
 				forbiddenServer.Close()
 			})

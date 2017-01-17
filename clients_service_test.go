@@ -217,7 +217,7 @@ var _ = Describe("ClientsService", func() {
 
 			err = service.Delete(client.ID, unauthorizedToken)
 			Expect(err).To(HaveOccurred())
-			Expect(err).To(BeAssignableToTypeOf(warrant.UnauthorizedError{}))
+			Expect(err).To(BeAssignableToTypeOf(warrant.ForbiddenError{}))
 		})
 	})
 
