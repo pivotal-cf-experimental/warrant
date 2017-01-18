@@ -40,12 +40,18 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var t domain.Token
+	t.Scopes = []string{}
+
 	if req.Form.Get("grant_type") == "client_credentials" {
-		t.ClientID = clientID
-		t.Scopes = client.Scope
 		t.Authorities = client.Authorities
-		t.Audiences = client.ResourceIDs
-		t.Issuer = fmt.Sprintf("%s/oauth/token", h.urlFinder.URL())
+		// This isn't correct - but it will put the resourceID
+		// in the audience
+		for _, resource := range client.ResourceIDs {
+			if resource == "none" {
+				continue
+			}
+			t.Audiences = append(t.Scopes, resource)
+		}
 	} else {
 		user, ok := h.users.GetByName(req.Form.Get("username"))
 		if !ok {
@@ -53,10 +59,16 @@ func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		t.ClientID = clientID
-		t.Scopes = client.Scope
 		t.UserID = user.ID
 	}
+
+	for _, scope := range client.Scope {
+		t.Scopes = append(t.Scopes, scope)
+	}
+
+	t.ClientID = clientID
+	t.Issuer = fmt.Sprintf("%s/oauth/token", h.urlFinder.URL())
+	t.Audiences = updateAudiences(t)
 
 	response, err := json.Marshal(t.ToDocument(h.privateKey))
 	if err != nil {

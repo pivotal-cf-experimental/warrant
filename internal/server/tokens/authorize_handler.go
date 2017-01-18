@@ -14,6 +14,7 @@ type authorizeHandler struct {
 	tokens  *domain.Tokens
 	users   *domain.Users
 	clients *domain.Clients
+	urlFinder  urlFinder
 }
 
 func (h authorizeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -77,11 +78,16 @@ func (h authorizeHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	t := h.tokens.Encrypt(domain.Token{
+	token := domain.Token{
 		UserID:    user.ID,
+		ClientID:  clientID,
 		Scopes:    scopes,
-		Audiences: []string{},
-	})
+		Issuer:    fmt.Sprintf("%s/oauth/token", h.urlFinder.URL()),
+	}
+
+	updateAudiences(token)
+
+	t := h.tokens.Encrypt(token)
 
 	redirectURI := requestQuery.Get("redirect_uri")
 
@@ -106,6 +112,46 @@ func contains(scopeList []string, requestedScope string) bool {
 	}
 
 	return false
+}
+
+func updateAudiences(token domain.Token) []string {
+	audMap:= make(map[string]string)
+
+	for _, scope := range token.Scopes {
+		index := strings.Index(scope, ".")
+
+		var audience string
+		if index == -1 {
+			audience = scope
+		} else {
+			audience = scope[:index]
+		}
+		audMap[audience] = audience
+	}
+
+	for _, authority := range token.Authorities {
+		index := strings.Index(authority, ".")
+
+		var audience string
+		if index == -1 {
+			audience = authority
+		} else {
+			audience = authority[:index]
+		}
+		audMap[audience] = audience
+	}
+
+	audiences := make([]string, 0, len(audMap) + 1)
+
+	if token.ClientID != "" {
+		audiences = append(audiences, token.ClientID)
+	}
+
+	for aud := range audMap {
+		audiences = append(audiences, aud)
+
+	}
+	return audiences
 }
 
 func (h authorizeHandler) redirectToLogin(w http.ResponseWriter) {
