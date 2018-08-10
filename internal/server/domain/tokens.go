@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 
 	"github.com/dgrijalva/jwt-go"
@@ -21,10 +23,20 @@ func NewTokens(publicKey, privateKey string, defaultScopes []string) *Tokens {
 }
 
 func (t Tokens) Encrypt(token Token) string {
-	crypt := jwt.New(jwt.SigningMethodRS256)
-	crypt.Claims = token.toClaims()
+	crypt := jwt.NewWithClaims(jwt.SigningMethodRS256, token.toClaims())
 	crypt.Header["kid"] = "legacy-token-key"
-	encrypted, err := crypt.SignedString([]byte(t.PrivateKey))
+
+	block, _ := pem.Decode([]byte(t.PrivateKey))
+	if block == nil {
+		panic("failed to decode PEM block containing public key")
+	}
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	encrypted, err := crypt.SignedString(privateKey)
 	if err != nil {
 		panic(err)
 	}
@@ -33,10 +45,20 @@ func (t Tokens) Encrypt(token Token) string {
 }
 
 func (t Tokens) Decrypt(encryptedToken string) (Token, error) {
-	tok, err := jwt.Parse(encryptedToken, jwt.Keyfunc(func(token *jwt.Token) (interface{}, error) {
+	tok, err := jwt.ParseWithClaims(encryptedToken, jwt.MapClaims{}, jwt.Keyfunc(func(token *jwt.Token) (interface{}, error) {
 		switch token.Method {
 		case jwt.SigningMethodRS256, jwt.SigningMethodRS384, jwt.SigningMethodRS512:
-			return []byte(t.PublicKey), nil
+			block, _ := pem.Decode([]byte(t.PublicKey))
+			if block == nil {
+				return nil, errors.New("failed to decode PEM block containing public key")
+			}
+
+			publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+			if err != nil {
+				return nil, err
+			}
+
+			return publicKey, nil
 		default:
 			return nil, errors.New("Unsupported signing method")
 		}
@@ -45,7 +67,11 @@ func (t Tokens) Decrypt(encryptedToken string) (Token, error) {
 		return Token{}, err
 	}
 
-	return newTokenFromClaims(tok.Claims), nil
+	if !tok.Valid {
+		return Token{}, errors.New("token is invalid")
+	}
+
+	return newTokenFromClaims(tok.Claims.(jwt.MapClaims)), nil
 }
 
 func (t Tokens) Validate(encryptedToken string, expectedToken Token) bool {

@@ -23,6 +23,7 @@ func (h createHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		common.JSONError(w, http.StatusUnauthorized, "Full authentication is required to access this resource", "unauthorized")
 		return
 	}
+
 	if ok := h.tokens.Validate(token, domain.Token{
 		Authorities: []string{"clients.write"},
 		Audiences:   []string{"clients"},

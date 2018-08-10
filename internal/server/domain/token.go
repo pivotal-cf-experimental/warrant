@@ -3,6 +3,7 @@ package domain
 import (
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
@@ -16,7 +17,7 @@ type Token struct {
 	Issuer      string
 }
 
-func newTokenFromClaims(claims map[string]interface{}) Token {
+func newTokenFromClaims(claims jwt.MapClaims) Token {
 	t := Token{}
 
 	if userID, ok := claims["user_id"].(string); ok {
@@ -70,8 +71,8 @@ func (t Token) ToDocument(privateKey string) documents.TokenResponse {
 	}
 }
 
-func (t Token) toClaims() map[string]interface{} {
-	claims := make(map[string]interface{})
+func (t Token) toClaims() jwt.MapClaims {
+	claims := make(jwt.MapClaims)
 
 	if len(t.UserID) > 0 {
 		claims["user_id"] = t.UserID

@@ -8,8 +8,6 @@ import (
 	"math/big"
 	"net/http"
 
-	"crypto/rsa"
-
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 )
 
@@ -24,16 +22,9 @@ func (h keyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		panic("No PEM data was included in the public key")
 	}
 
-	publicKey, err := x509.ParsePKIXPublicKey(pem.Bytes)
-
+	rsaPublicKey, err := x509.ParsePKCS1PublicKey(pem.Bytes)
 	if err != nil {
 		panic(err)
-	}
-
-	rsaPublicKey, ok := publicKey.(*rsa.PublicKey)
-
-	if !ok {
-		panic("public key is not rsa")
 	}
 
 	exponentBytes := big.NewInt(int64(rsaPublicKey.E)).Bytes()
