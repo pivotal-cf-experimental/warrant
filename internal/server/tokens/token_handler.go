@@ -21,22 +21,17 @@ type tokenHandler struct {
 }
 
 func (h tokenHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// TODO: actually check the basic auth values
-	clientID, _, ok := req.BasicAuth()
-	if !ok {
-		common.JSONError(w, http.StatusUnauthorized, "An Authentication object was not found in the SecurityContext", "unauthorized")
-		return
+	err := req.ParseForm()
+	if err != nil {
+		panic(err)
 	}
+
+	clientID := req.Form.Get("client_id")
 
 	client, ok := h.clients.Get(clientID)
 	if !ok {
 		common.JSONError(w, http.StatusUnauthorized, fmt.Sprintf("No client with requested id: %s", clientID), "invalid_client")
 		return
-	}
-
-	err := req.ParseForm()
-	if err != nil {
-		panic(err)
 	}
 
 	var t domain.Token
