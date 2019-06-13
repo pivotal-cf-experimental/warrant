@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"time"
 
 	"github.com/pivotal-cf-experimental/warrant"
@@ -156,10 +157,19 @@ var _ = Describe("ClientsService", func() {
 			tokensService := warrant.NewTokensService(config)
 			decodedToken, err := tokensService.Decode(clientToken)
 			Expect(err).NotTo(HaveOccurred())
+
+			segments := strings.Split(clientToken, ".")
+			Expect(segments).To(HaveLen(3))
 			Expect(decodedToken).To(Equal(warrant.Token{
-				ClientID: client.ID,
-				Scopes:   []string{"openid", "bananas.eat"},
-				Issuer:   fmt.Sprintf("%s/oauth/token", fakeUAA.URL()),
+				Algorithm: "RS256",
+				ClientID:  client.ID,
+				Scopes:    []string{"openid", "bananas.eat"},
+				Issuer:    fmt.Sprintf("%s/oauth/token", fakeUAA.URL()),
+				Segments: warrant.TokenSegments{
+					Header:    segments[0],
+					Claims:    segments[1],
+					Signature: segments[2],
+				},
 			}))
 		})
 
