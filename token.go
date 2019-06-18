@@ -1,6 +1,8 @@
 package warrant
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"strings"
@@ -40,31 +42,36 @@ type Token struct {
 func (t Token) Verify(signingKeys []SigningKey) error {
 	for _, signingKey := range signingKeys {
 		if signingKey.KeyId == t.KeyID {
-			var (
-				method jwt.SigningMethod
-				key    interface{}
-			)
+			signingString := strings.Join([]string{t.Segments.Header, t.Segments.Claims}, ".")
 
 			switch t.Algorithm {
 			case jwt.SigningMethodRS256.Alg(), jwt.SigningMethodRS384.Alg(), jwt.SigningMethodRS512.Alg():
-				method = jwt.GetSigningMethod(t.Algorithm)
+				method := jwt.GetSigningMethod(t.Algorithm)
 
 				var err error
-				key, err = jwt.ParseRSAPublicKeyFromPEM([]byte(signingKey.Value))
+				key, err := jwt.ParseRSAPublicKeyFromPEM([]byte(signingKey.Value))
 				if err != nil {
-					return err
+					block, rest := pem.Decode([]byte(signingKey.Value))
+					if len(rest) > 0 {
+						return errors.New("public key is not valid PEM encoding")
+					}
+
+					key, err = x509.ParsePKCS1PublicKey(block.Bytes)
+					if err != nil {
+						return err
+					}
 				}
 
+				return method.Verify(signingString, t.Segments.Signature, key)
+
 			case jwt.SigningMethodHS256.Alg(), jwt.SigningMethodHS384.Alg(), jwt.SigningMethodHS512.Alg():
-				method = jwt.GetSigningMethod(t.Algorithm)
-				key = []byte(signingKey.Value)
+				method := jwt.GetSigningMethod(t.Algorithm)
+				key := []byte(signingKey.Value)
+				return method.Verify(signingString, t.Segments.Signature, key)
 
 			default:
 				return fmt.Errorf("unsupported token signing method: %s", t.Algorithm)
 			}
-
-			signingString := strings.Join([]string{t.Segments.Header, t.Segments.Claims}, ".")
-			return method.Verify(signingString, t.Segments.Signature, key)
 		}
 	}
 

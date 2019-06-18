@@ -43,7 +43,7 @@ var _ = Describe("Token", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			publicKey := string(pem.EncodeToMemory(&pem.Block{
-				Type:  "RSA PUBLIC KEY",
+				Type:  "PUBLIC KEY",
 				Bytes: publicASN1,
 			}))
 
@@ -60,11 +60,10 @@ var _ = Describe("Token", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(privateKey.Validate()).To(Succeed())
 
-			publicASN1, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
-			Expect(err).NotTo(HaveOccurred())
+			publicASN1 := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
 
 			publicKey := string(pem.EncodeToMemory(&pem.Block{
-				Type:  "RSA PUBLIC KEY",
+				Type:  "PUBLIC KEY",
 				Bytes: publicASN1,
 			}))
 
@@ -86,38 +85,78 @@ var _ = Describe("Token", func() {
 	})
 
 	Describe("Verify", func() {
-		It("verifies tokens to signed using RSA", func() {
-			signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-				"client_id": "some-client-id",
-				"user_id":   "some-user-id",
-				"scope":     []string{"some-scope"},
-				"iss":       "some-issuer",
-				"kid":       keyA.ID,
-			}).SignedString(keyA.PrivateKey)
-			Expect(err).NotTo(HaveOccurred())
+		Context("when the signing key uses RSA", func() {
+			Context("when the public key is PKIX format", func() {
+				It("verifies the token", func() {
+					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+						"client_id": "some-client-id",
+						"user_id":   "some-user-id",
+						"scope":     []string{"some-scope"},
+						"iss":       "some-issuer",
+						"kid":       keyA.ID,
+					}).SignedString(keyA.PrivateKey)
+					Expect(err).NotTo(HaveOccurred())
 
-			token, err := service.Decode(signedToken)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(token.KeyID).To(Equal("some-key-id-a"))
+					token, err := service.Decode(signedToken)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(token.KeyID).To(Equal("some-key-id-a"))
 
-			err = token.Verify([]warrant.SigningKey{
-				{
-					KeyId:     keyA.ID,
-					Algorithm: keyA.Algorithm,
-					Value:     keyA.PublicKey,
-				},
-				{
-					KeyId:     keyB.ID,
-					Algorithm: keyB.Algorithm,
-					Value:     keyB.PublicKey,
-				},
-				{
-					KeyId:     keyC.ID,
-					Algorithm: keyC.Algorithm,
-					Value:     keyC.SharedSecret,
-				},
+					err = token.Verify([]warrant.SigningKey{
+						{
+							KeyId:     keyA.ID,
+							Algorithm: keyA.Algorithm,
+							Value:     keyA.PublicKey,
+						},
+						{
+							KeyId:     keyB.ID,
+							Algorithm: keyB.Algorithm,
+							Value:     keyB.PublicKey,
+						},
+						{
+							KeyId:     keyC.ID,
+							Algorithm: keyC.Algorithm,
+							Value:     keyC.SharedSecret,
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+				})
 			})
-			Expect(err).NotTo(HaveOccurred())
+
+			Context("when the public key is PKCS1 format", func() {
+				It("verifies the token", func() {
+					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+						"client_id": "some-client-id",
+						"user_id":   "some-user-id",
+						"scope":     []string{"some-scope"},
+						"iss":       "some-issuer",
+						"kid":       keyB.ID,
+					}).SignedString(keyB.PrivateKey)
+					Expect(err).NotTo(HaveOccurred())
+
+					token, err := service.Decode(signedToken)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(token.KeyID).To(Equal("some-key-id-b"))
+
+					err = token.Verify([]warrant.SigningKey{
+						{
+							KeyId:     keyA.ID,
+							Algorithm: keyA.Algorithm,
+							Value:     keyA.PublicKey,
+						},
+						{
+							KeyId:     keyB.ID,
+							Algorithm: keyB.Algorithm,
+							Value:     keyB.PublicKey,
+						},
+						{
+							KeyId:     keyC.ID,
+							Algorithm: keyC.Algorithm,
+							Value:     keyC.SharedSecret,
+						},
+					})
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
 		})
 
 		It("verifies tokens to signed using HMAC", func() {
@@ -230,7 +269,7 @@ var _ = Describe("Token", func() {
 							Value:     "garbage public key",
 						},
 					})
-					Expect(err).To(MatchError("Invalid Key: Key must be PEM encoded PKCS1 or PKCS8 private key"))
+					Expect(err).To(MatchError("public key is not valid PEM encoding"))
 				})
 			})
 
