@@ -49,12 +49,13 @@ func NewUAA() *UAA {
 
 	router := mux.NewRouter()
 	uaa := &UAA{
-		server:    httptest.NewUnstartedServer(router),
-		tokens:    tokensCollection,
-		users:     usersCollection,
-		clients:   clientsCollection,
-		groups:    groupsCollection,
-		publicKey: publicKey,
+		server:     httptest.NewUnstartedServer(router),
+		tokens:     tokensCollection,
+		users:      usersCollection,
+		clients:    clientsCollection,
+		groups:     groupsCollection,
+		privateKey: privateKey,
+		publicKey:  publicKey,
 	}
 
 	tokenRouter := tokens.NewRouter(
