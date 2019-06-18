@@ -110,7 +110,7 @@ func (ts TokensService) GetSigningKey() (SigningKey, error) {
 
 // GetSigningKeys makes a request to UAA to retrieve the SigningKeys used to
 // generate valid tokens.
-func (ts *TokensService) GetSigningKeys() ([]SigningKey, error) {
+func (ts TokensService) GetSigningKeys() ([]SigningKey, error) {
 	resp, err := newNetworkClient(ts.config).MakeRequest(network.Request{
 		Method:                "GET",
 		Path:                  "/token_keys",
