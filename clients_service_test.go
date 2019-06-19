@@ -162,6 +162,7 @@ var _ = Describe("ClientsService", func() {
 			Expect(segments).To(HaveLen(3))
 			Expect(decodedToken).To(Equal(warrant.Token{
 				Algorithm: "RS256",
+				KeyID:     "legacy-token-key",
 				ClientID:  client.ID,
 				Scopes:    []string{"openid", "bananas.eat"},
 				Issuer:    fmt.Sprintf("%s/oauth/token", fakeUAA.URL()),

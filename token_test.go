@@ -88,13 +88,16 @@ var _ = Describe("Token", func() {
 		Context("when the signing key uses RSA", func() {
 			Context("when the public key is PKIX format", func() {
 				It("verifies the token", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyA.ID,
-					}).SignedString(keyA.PrivateKey)
+					})
+
+					unsignedToken.Header["kid"] = keyA.ID
+
+					signedToken, err := unsignedToken.SignedString(keyA.PrivateKey)
 					Expect(err).NotTo(HaveOccurred())
 
 					token, err := service.Decode(signedToken)
@@ -124,13 +127,16 @@ var _ = Describe("Token", func() {
 
 			Context("when the public key is PKCS1 format", func() {
 				It("verifies the token", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyB.ID,
-					}).SignedString(keyB.PrivateKey)
+					})
+
+					unsignedToken.Header["kid"] = keyB.ID
+
+					signedToken, err := unsignedToken.SignedString(keyB.PrivateKey)
 					Expect(err).NotTo(HaveOccurred())
 
 					token, err := service.Decode(signedToken)
@@ -160,13 +166,16 @@ var _ = Describe("Token", func() {
 		})
 
 		It("verifies tokens to signed using HMAC", func() {
-			signedToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			unsignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"client_id": "some-client-id",
 				"user_id":   "some-user-id",
 				"scope":     []string{"some-scope"},
 				"iss":       "some-issuer",
-				"kid":       keyC.ID,
-			}).SignedString([]byte(keyC.SharedSecret))
+			})
+
+			unsignedToken.Header["kid"] = keyC.ID
+
+			signedToken, err := unsignedToken.SignedString([]byte(keyC.SharedSecret))
 			Expect(err).NotTo(HaveOccurred())
 
 			token, err := service.Decode(signedToken)
@@ -196,13 +205,16 @@ var _ = Describe("Token", func() {
 		Context("failure cases", func() {
 			Context("when the token was not signed by a known signing key", func() {
 				It("returns an error", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyA.ID,
-					}).SignedString(keyA.PrivateKey)
+					})
+
+					unsignedToken.Header["kid"] = keyA.ID
+
+					signedToken, err := unsignedToken.SignedString(keyA.PrivateKey)
 					Expect(err).NotTo(HaveOccurred())
 
 					token, err := service.Decode(signedToken)
@@ -221,13 +233,16 @@ var _ = Describe("Token", func() {
 
 			Context("when the token was tampered with", func() {
 				It("returns an error", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyA.ID,
-					}).SignedString(keyA.PrivateKey)
+					})
+
+					unsignedToken.Header["kid"] = keyA.ID
+
+					signedToken, err := unsignedToken.SignedString(keyA.PrivateKey)
 					Expect(err).NotTo(HaveOccurred())
 
 					By("tampering with the signature by removing the base64 character", func() {
@@ -250,13 +265,16 @@ var _ = Describe("Token", func() {
 
 			Context("when the RSA public key cannot be parsed", func() {
 				It("returns an error", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyA.ID,
-					}).SignedString(keyA.PrivateKey)
+					})
+
+					unsignedToken.Header["kid"] = keyA.ID
+
+					signedToken, err := unsignedToken.SignedString(keyA.PrivateKey)
 					Expect(err).NotTo(HaveOccurred())
 
 					token, err := service.Decode(signedToken)
@@ -275,13 +293,16 @@ var _ = Describe("Token", func() {
 
 			Context("when the token algorithm is not supported", func() {
 				It("returns an error", func() {
-					signedToken, err := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
+					unsignedToken := jwt.NewWithClaims(jwt.SigningMethodNone, jwt.MapClaims{
 						"client_id": "some-client-id",
 						"user_id":   "some-user-id",
 						"scope":     []string{"some-scope"},
 						"iss":       "some-issuer",
-						"kid":       keyA.ID,
-					}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+					})
+
+					unsignedToken.Header["kid"] = keyA.ID
+
+					signedToken, err := unsignedToken.SignedString(jwt.UnsafeAllowNoneSignatureType)
 					Expect(err).NotTo(HaveOccurred())
 
 					token, err := service.Decode(signedToken)

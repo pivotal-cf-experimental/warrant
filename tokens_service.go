@@ -53,7 +53,8 @@ func (ts TokensService) Decode(token string) (Token, error) {
 	}
 
 	var header struct {
-		Alg string `json:"alg"`
+		Alg   string `json:"alg"`
+		KeyID string `json:"kid"`
 	}
 	err = json.Unmarshal(headerSegment, &header)
 	if err != nil {
@@ -67,6 +68,7 @@ func (ts TokensService) Decode(token string) (Token, error) {
 
 	t := Token{
 		Algorithm: header.Alg,
+		KeyID:     header.KeyID,
 		Segments: TokenSegments{
 			Header:    segments[0],
 			Claims:    segments[1],

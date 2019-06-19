@@ -15,6 +15,9 @@ type Token struct {
 	// Algorithm is the method used to sign the token.
 	Algorithm string
 
+	// KeyID is the ID of the signing key used to sign this token.
+	KeyID string
+
 	// ClientID is the value given in the "client_id" field of the token claims.
 	// This is the unique identifier of the client to whom this token was granted.
 	ClientID string `json:"client_id"`
@@ -29,9 +32,6 @@ type Token struct {
 
 	// Issuer is the UAA endpoint that generated the token.
 	Issuer string `json:"iss"`
-
-	// KeyID is the ID of the signing key used to sign this token.
-	KeyID string `json:"kid"`
 
 	// Segments contains the raw token segment strings.
 	Segments TokenSegments
