@@ -5,7 +5,7 @@ import (
 	"encoding/pem"
 	"errors"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 type Tokens struct {

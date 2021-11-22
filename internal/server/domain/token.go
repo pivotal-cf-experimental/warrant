@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/pivotal-cf-experimental/warrant/internal/documents"
 	"github.com/pivotal-cf-experimental/warrant/internal/server/common"
 )
