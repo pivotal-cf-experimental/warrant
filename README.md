@@ -1,4 +1,7 @@
-# A Client Library for UAA, written in Go
+# [DEPRECATED] A Client Library for UAA, written in Go
+
+Deprecated in favor of https://github.com/cloudfoundry-community/go-uaa
+
 Warrant provides a library of functionality for interacting with the UAA service.
 The library supports management of users, clients, groups and tokens.
 
